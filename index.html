@@ -1,10 +1,21 @@
 <!DOCTYPE html>
+<!--
+  ═══════════════════════════════════════════════
+   茴禧花坊薪資表  Huixi Payroll
+   版權所有 © 2026 CTM. All rights reserved.
+
+   本程式碼由 CTM 開發並擁有著作權。
+   未經授權，不得重製、散布、改作或作商業使用。
+  ═══════════════════════════════════════════════
+-->
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>茴禧花坊 · 薪資表</title>
 <meta name="description" content="茴禧花坊的出勤與薪資計算工具">
+<meta name="author" content="CTM">
+<meta name="copyright" content="© 2026 CTM. All rights reserved.">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1C2A2B">
 <meta name="mobile-web-app-capable" content="yes">
@@ -191,6 +202,8 @@
   .status b{color:var(--stem);font-weight:500}
   .status i{font-style:normal;color:var(--acc-normal)}
   .foot{margin-top:22px;font-size:12px;color:var(--ink-soft);text-align:center;line-height:1.7}
+  .copy{margin:8px 0 0;text-align:center;font-size:11px;letter-spacing:.14em;color:var(--ink-soft);opacity:.75}
+  .copy span{font-family:var(--mono);letter-spacing:0}
 
 :root[data-theme="dark"]{
     color-scheme:dark;
@@ -293,6 +306,7 @@
     .rowcap thead th,.rowcap tfoot td{position:static;box-shadow:none}
     .rowcap tfoot td{border-top:1px solid #000}
     .listnote{display:none}
+    .copy{display:block!important;margin-top:14px;color:#000;opacity:1}
     tbody tr:hover td{background:transparent}
     .total{background:#fff;color:#000;border-top:2px solid #000}
     .total span{opacity:1}
@@ -410,6 +424,7 @@
   </div>
 
   <p class="foot" id="footNote">資料儲存在這台裝置，切換月份或關閉後仍會保留。建議每月匯出 CSV 備份。</p>
+  <p class="copy">版權所有 <span>&copy; 2026 CTM</span> · 保留一切權利</p>
 </div>
 
 <div class="mask hide" id="guideMask">
@@ -451,13 +466,21 @@
         <li><b>Android</b>：Chrome 選單 → 安裝應用程式，或按工具列的「安裝」。</li>
         <li>裝好後可離線開啟，之前輸入的資料仍在。</li>
       </ul>
+
+      <h3>版權</h3>
+      <p>茴禧花坊薪資表　版權所有 &copy; 2026 CTM，保留一切權利。未經授權不得重製、散布或作商業使用。</p>
     </div>
   </div>
 </div>
 
 <script>
+/*! 茴禧花坊薪資表 | © 2026 CTM. All rights reserved. | 未經授權不得重製或散布 */
 (function(){
   "use strict";
+
+  try{
+    console.log("%c茴禧花坊薪資表  © 2026 CTM", "color:#8B3A5C;font-weight:600");
+  }catch(e){}
 
   var KEY = "huixi:payroll:v4", OLDKEYS = ["huixi:payroll:v3","huixi:payroll:v2"];
 
