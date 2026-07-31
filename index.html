@@ -208,6 +208,36 @@
   .modal{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);width:100%;max-width:430px;max-height:88vh;overflow:auto}
   .modal > header{padding:11px 16px;border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.24em;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:center}
   .mbody{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+  .mask.full{padding:0;align-items:stretch;justify-content:stretch}
+  .sheet{
+    background:var(--paper);width:100%;display:flex;flex-direction:column;zoom:var(--zoom,1);
+    height:calc(100vh / var(--zoom,1));height:calc(100dvh / var(--zoom,1));
+  }
+  .sheet > header{
+    flex:0 0 auto;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--card);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .sheet > header .who2{font-size:11px;letter-spacing:.16em;color:var(--ink-soft);line-height:1.6}
+  .sbody{flex:1 1 auto;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+  .sfoot{flex:0 0 auto;border-top:1px solid var(--line);background:var(--card);padding:12px 16px;display:flex;gap:8px;align-items:center}
+  .sfoot .grow{flex:1}
+  .daynav{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .daynav .dtitle{font-family:var(--serif);font-size:23px;letter-spacing:.08em}
+  .daynav .dtitle em{font-style:normal;color:var(--accent);margin-left:8px;font-size:15px;letter-spacing:.2em}
+  .bigfield{display:flex;flex-direction:column;gap:6px}
+  .bigfield > label{font-size:11px;letter-spacing:.18em;color:var(--ink-soft)}
+  .bigfield input{font-size:23px;padding:13px 12px;text-align:center;font-family:var(--mono);border-radius:10px}
+  .bigfield input.txt{font-family:var(--sans);font-size:18px;text-align:left}
+  .bigrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;font-size:13px;font-family:var(--mono)}
+  .chip:hover{border-color:var(--accent)}
+  .esum{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:13px 15px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .esum span{font-size:12px;letter-spacing:.16em;color:var(--ink-soft)}
+  .esum strong{font-family:var(--mono);font-size:24px;font-weight:500}
+  .leaverow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:15px}
+  .leaverow input{width:20px;height:20px;accent-color:var(--accent)}
+  td.date .tap{cursor:pointer;border-bottom:1px dotted var(--line)}
   .mrow{display:flex;gap:8px;flex-wrap:wrap}
   .seg{display:flex;flex-direction:column;gap:6px}
   .seg > label{font-size:11px;letter-spacing:.14em;color:var(--ink-soft)}
@@ -386,6 +416,7 @@
       <button class="btn" id="btnSet">設定</button>
       <button class="btn" id="btnFill">批次填入</button>
       <button class="btn" id="btnImport">批次匯入</button>
+      <button class="btn" id="btnEntry">輸入視窗</button>
       <button class="btn" id="btnCopy">複製上月</button>
       <button class="btn" id="btnCsv">匯出 CSV</button>
       <button class="btn" id="btnPrint">列印</button>
@@ -484,6 +515,22 @@
  </div><!-- /body -->
 </div>
 
+<div class="mask full hide" id="entryMask">
+  <div class="sheet">
+    <header>
+      <div class="who2" id="eWho"></div>
+      <button class="btn" id="eClose">完成</button>
+    </header>
+    <div class="sbody" id="eBody"></div>
+    <div class="sfoot">
+      <button class="btn" id="ePrev">‹ 前一天</button>
+      <button class="btn" id="eNext">後一天 ›</button>
+      <span class="grow"></span>
+      <button class="btn ghost" id="eWipe">清除本日</button>
+    </div>
+  </div>
+</div>
+
 <div class="mask hide" id="impMask">
   <div class="modal">
     <header><span>批 次 匯 入</span><button class="btn ghost" id="iClose">關閉</button></header>
@@ -573,6 +620,14 @@
         <li><b>iPhone</b>：用 Safari 開啟 → 分享鈕 → 加入主畫面。</li>
         <li><b>Android</b>：Chrome 選單 → 安裝應用程式，或按工具列的「安裝」。</li>
         <li>裝好後可離線開啟，之前輸入的資料仍在。</li>
+      </ul>
+
+      <h3>輸入視窗</h3>
+      <ul>
+        <li>按工具列的「輸入視窗」，或直接點表格裡的日期，會開一個整頁的輸入畫面。</li>
+        <li>欄位放大、一次只填一天，下方用「前一天／後一天」連續輸入，適合單手在店裡邊做邊記。</li>
+        <li>會列出你這個月最常用的班別，點一下直接套用。</li>
+        <li>按「完成」回到主畫面，資料即時反映在表格與結算。</li>
       </ul>
 
       <h3>批次匯入</h3>
@@ -1001,7 +1056,9 @@
 
       var td1 = document.createElement("td");
       td1.className = "date";
-      td1.innerHTML = state.m + "/" + d + '<span class="dow">' + DOW[w] + "</span>";
+      td1.innerHTML = '<span class="tap">' + state.m + "/" + d + '</span><span class="dow">' + DOW[w] + "</span>";
+      td1.querySelector(".tap").onclick = function(){ openEntry(d); };
+      td1.title = "點日期開啟輸入視窗";
       tr.appendChild(td1);
 
       var cell = {};
@@ -1501,6 +1558,182 @@
     a.download = "茴禧花坊薪資_" + state.y + pad(state.m) + "_" + divMeta(state.div).label + "_" + name + ".csv";
     document.body.appendChild(a); a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  };
+
+  /* ── 獨立輸入視窗 ───────────────────── */
+  var entryDay = 0;
+
+  function commonShifts(b){
+    var tally = {}, k2;
+    for(var d=1; d<=31; d++){
+      var r = b.days[key(state.y, state.m, d)];
+      if(!r || !r.in || !r.out) continue;
+      k2 = r.in + "-" + r.out + "|" + (r.brk || 0);
+      tally[k2] = (tally[k2] || 0) + 1;
+    }
+    return Object.keys(tally).sort(function(a, c){ return tally[c] - tally[a]; }).slice(0, 3);
+  }
+
+  function entryRec(){
+    var b = bk(current()), k = key(state.y, state.m, entryDay);
+    if(!b.days[k]) b.days[k] = {};
+    return b.days[k];
+  }
+
+  function entrySummary(){
+    var b = bk(current()), t = b.type || "hourly";
+    var r = b.days[key(state.y, state.m, entryDay)] || {};
+    var el = document.getElementById("eSum");
+    if(!el) return;
+    if(t === "perjob"){
+      var amt = dayAmount(b, r);
+      el.innerHTML = "<span>本日金額</span><strong>NT$ " + money(amt) + "</strong>";
+    }else if(r.leave && t === "monthly"){
+      el.innerHTML = "<span>本日</span><strong>請假</strong>";
+    }else{
+      var v = dayMinutes(r);
+      el.innerHTML = "<span>本日出勤</span><strong>" + hm(v) + "　<small style='font-size:14px'>" + v + " 分</small></strong>";
+    }
+  }
+
+  function drawEntry(){
+    var e = current(), b = bk(e), m = bookMeta(state.book), t = b.type || "hourly";
+    var n = daysIn(state.y, state.m);
+    if(entryDay < 1) entryDay = 1;
+    if(entryDay > n) entryDay = n;
+    var k = key(state.y, state.m, entryDay);
+    var r = b.days[k] || {};
+    var w = new Date(state.y, state.m-1, entryDay).getDay();
+
+    document.getElementById("eWho").innerHTML =
+      divMeta(state.div).label + " · " + (e.name || "未命名") + "<br>" + m.label + " · " + TYPE[t];
+
+    var box = document.getElementById("eBody");
+    box.innerHTML = "";
+
+    var nav = document.createElement("div");
+    nav.className = "daynav";
+    nav.innerHTML = '<div class="dtitle">' + state.m + " 月 " + entryDay + " 日<em>週" + DOW[w] + "</em></div>";
+    box.appendChild(nav);
+
+    var sum = document.createElement("div");
+    sum.className = "esum"; sum.id = "eSum";
+    box.appendChild(sum);
+
+    function field(label, node){
+      var f = document.createElement("div");
+      f.className = "bigfield";
+      var l = document.createElement("label");
+      l.textContent = label;
+      f.appendChild(l); f.appendChild(node);
+      return f;
+    }
+    function changed(){ save(); entrySummary(); }
+
+    if(t === "perjob"){
+      var it = document.createElement("input");
+      it.type = "text"; it.className = "txt"; it.value = r.item || ""; it.placeholder = m.ph;
+      it.onchange = function(){ entryRec().item = it.value; changed(); };
+      box.appendChild(field(m.item, it));
+
+      var grid = document.createElement("div");
+      grid.className = "bigrow";
+      var qi = document.createElement("input");
+      qi.type = "number"; qi.min = "0"; qi.step = "1"; qi.inputMode = "numeric";
+      qi.value = r.qty || ""; qi.placeholder = "0";
+      qi.onchange = function(){ entryRec().qty = num(qi.value); changed(); };
+      var pi = document.createElement("input");
+      pi.type = "number"; pi.min = "0"; pi.step = "10"; pi.inputMode = "numeric";
+      pi.value = (r.price === undefined || r.price === null) ? "" : r.price;
+      pi.placeholder = num(b.unit);
+      pi.onchange = function(){ entryRec().price = pi.value === "" ? "" : num(pi.value); changed(); };
+      grid.appendChild(field("件數", qi));
+      grid.appendChild(field("單價（留空用預設）", pi));
+      box.appendChild(grid);
+
+    }else{
+      if(t === "monthly"){
+        var lv = document.createElement("label");
+        lv.className = "leaverow";
+        var cb = document.createElement("input");
+        cb.type = "checkbox"; cb.checked = !!r.leave;
+        cb.onchange = function(){ entryRec().leave = cb.checked; save(); drawEntry(); };
+        lv.appendChild(cb);
+        lv.appendChild(document.createTextNode("這天請假"));
+        box.appendChild(lv);
+      }
+
+      if(!(r.leave && t === "monthly")){
+        var g2 = document.createElement("div");
+        g2.className = "bigrow";
+        var ti = document.createElement("input");
+        ti.type = "time"; ti.value = r.in || "";
+        ti.onchange = function(){ entryRec().in = ti.value; changed(); };
+        var to = document.createElement("input");
+        to.type = "time"; to.value = r.out || "";
+        to.onchange = function(){ entryRec().out = to.value; changed(); };
+        g2.appendChild(field("上班時間", ti));
+        g2.appendChild(field("下班時間", to));
+        box.appendChild(g2);
+
+        var bi = document.createElement("input");
+        bi.type = "number"; bi.min = "0"; bi.step = "5"; bi.inputMode = "numeric";
+        bi.value = r.brk || ""; bi.placeholder = "0";
+        bi.onchange = function(){ entryRec().brk = parseInt(bi.value, 10) || 0; changed(); };
+        box.appendChild(field("休息（分鐘）", bi));
+
+        var shifts = commonShifts(b);
+        if(shifts.length){
+          var chips = document.createElement("div");
+          chips.className = "chips";
+          shifts.forEach(function(sk){
+            var parts = sk.split("|"), tt = parts[0].split("-");
+            var c = document.createElement("button");
+            c.type = "button"; c.className = "chip";
+            c.textContent = tt[0] + "–" + tt[1] + (+parts[1] ? " 休" + parts[1] : "");
+            c.onclick = function(){
+              var rec = entryRec();
+              rec.in = tt[0]; rec.out = tt[1]; rec.brk = +parts[1] || 0;
+              save(); drawEntry();
+            };
+            chips.appendChild(c);
+          });
+          box.appendChild(chips);
+        }
+      }
+    }
+    entrySummary();
+  }
+
+  function openEntry(d){
+    entryDay = d || entryDay || new Date().getDate();
+    drawEntry();
+    document.getElementById("entryMask").classList.remove("hide");
+  }
+  function closeEntry(){
+    document.getElementById("entryMask").classList.add("hide");
+    drawTable(); drawPayout(); drawBooks();
+  }
+
+  document.getElementById("btnEntry").onclick = function(){
+    var b = bk(current()), n = daysIn(state.y, state.m);
+    var now = new Date(), d = 1;
+    if(now.getFullYear() === state.y && now.getMonth()+1 === state.m) d = now.getDate();
+    else{
+      for(var i=1; i<=n; i++){
+        var r = b.days[key(state.y, state.m, i)];
+        if(!r || !(r.in || r.qty || r.leave)){ d = i; break; }
+      }
+    }
+    openEntry(d);
+  };
+  document.getElementById("eClose").onclick = closeEntry;
+  document.getElementById("ePrev").onclick = function(){ entryDay--; if(entryDay < 1) entryDay = daysIn(state.y, state.m); drawEntry(); };
+  document.getElementById("eNext").onclick = function(){ entryDay++; if(entryDay > daysIn(state.y, state.m)) entryDay = 1; drawEntry(); };
+  document.getElementById("eWipe").onclick = function(){
+    if(!confirm(state.m + "/" + entryDay + " 的資料要清除嗎？")) return;
+    delete bk(current()).days[key(state.y, state.m, entryDay)];
+    save(); drawEntry();
   };
 
   /* ── 批次匯入 ───────────────────────── */
