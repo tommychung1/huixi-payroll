@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>茴禧花坊 · 薪資表</title>
+<meta name="description" content="茴禧花坊的出勤與薪資計算工具">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1C2A2B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="茴禧薪資">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%231C2A2B'/%3E%3Cpath d='M256 262v128' stroke='%234E7A61' stroke-width='22' stroke-linecap='round'/%3E%3Cpath d='M256 320c-42-4-72 22-76 66 44 6 74-20 76-66z' fill='%233D6B52'/%3E%3Cg fill='%23C4547F'%3E%3Ccircle cx='256' cy='156' r='52'/%3E%3Ccircle cx='313' cy='197' r='52'/%3E%3Ccircle cx='291' cy='265' r='52'/%3E%3Ccircle cx='221' cy='265' r='52'/%3E%3Ccircle cx='199' cy='197' r='52'/%3E%3C/g%3E%3Ccircle cx='256' cy='216' r='40' fill='%23E0B44A'/%3E%3C/svg%3E">
+<style>
+  :root{
+    color-scheme:light;
+    --paper:#EEF2F0;
+    --card:#FFFFFF;
+    --ink:#1C2A2B;
+    --ink-soft:#5C6E6C;
+    --stem:#3D6B52;
+    --bloom:#8B3A5C;
+    --pollen:#B8860F;
+    --line:#C9D6D0;
+    --hair:#EBF0ED;
+    --acc-normal:#8B3A5C;
+    --acc-dispatch:#9A6B12;
+    --acc-internal:#3D6B52;
+    --accent:var(--acc-normal);
+    --btn-bg:#FFFFFF;
+    --btn-hover:#F7FAF8;
+    --input-bg:#FFFFFF;
+    --sel-bg:#1C2A2B;
+    --sel-fg:#FFFFFF;
+    --book-normal:#F7F0F3;
+    --book-dispatch:#F9F3E6;
+    --book-internal:#F1F6F2;
+    --rest:#F6F8F7;
+    --today:#FBF6E9;
+    --leave:#F7F0F3;
+    --hover:#F3F7F4;
+    --zero:#B8C6C0;
+    --split-bg:#FAFCFB;
+    --radius:10px;
+    --sans:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+    --serif:"Songti TC","Noto Serif TC","Source Han Serif TC","PMingLiU",serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{background:var(--paper)}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 16px 64px}
+  .hide{display:none!important}
+
+  .masthead{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .titles h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.14em;margin:0;line-height:1.15}
+  .titles p{margin:2px 0 0;font-size:12px;letter-spacing:.22em;color:var(--ink-soft)}
+  .masthead .spacer{flex:1 1 auto}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+  button{font-family:inherit;font-size:14px;color:var(--ink);cursor:pointer}
+  .btn{background:var(--btn-bg);border:1px solid var(--line);border-radius:var(--radius);padding:7px 13px;transition:border-color .15s,background .15s}
+  .btn:hover{border-color:var(--stem);background:var(--btn-hover)}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-soft);padding:6px 8px}
+  .btn.ghost:hover{color:var(--accent)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  input,select{font-family:inherit;font-size:14px;color:var(--ink);background:var(--input-bg);border:1px solid var(--line);border-radius:8px;padding:6px 9px;min-width:0}
+  input:focus,select:focus{border-color:var(--accent)}
+  input[type=time]{font-family:var(--mono);letter-spacing:.02em}
+
+  .divs{display:flex;gap:8px;margin:16px 0 4px;flex-wrap:wrap}
+  .divi{display:flex;flex-direction:column;gap:1px;align-items:flex-start;padding:9px 22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);transition:.15s}
+  .divi .dn{font-family:var(--serif);font-size:17px;letter-spacing:.18em}
+  .divi .dv{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .divi:hover{border-color:var(--stem)}
+  .divi[aria-selected="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-fg)}
+  .divi[aria-selected="true"] .dv{color:var(--sel-fg);opacity:.72}
+  .monthbar{display:flex;align-items:center;gap:10px;margin:16px 0 12px;flex-wrap:wrap}
+  .month{font-family:var(--serif);font-size:20px;letter-spacing:.1em;min-width:150px;text-align:center}
+  .month em{font-style:normal;color:var(--accent)}
+
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .tab{background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 15px;font-size:14px;transition:.15s}
+  .tab:hover{border-color:var(--stem)}
+  .tab[aria-selected="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-fg)}
+
+  /* 業務別切換 */
+  .books{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card);max-width:680px}
+  .book{flex:1;display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:10px 16px;border:0;background:transparent;border-right:1px solid var(--line);transition:.15s}
+  .book:last-child{border-right:0}
+  .book .bl{font-size:13px;letter-spacing:.12em;display:flex;align-items:center;gap:7px}
+  .book .bl::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--line)}
+  .book .bv{font-family:var(--mono);font-size:16px;color:var(--ink-soft)}
+  .book[aria-selected="true"]{background:var(--bk-bg)}
+  .book .bl::before{background:var(--bk-acc,var(--line))}
+  .book[aria-selected="true"] .bv{color:var(--ink)}
+  .book[aria-selected="true"] .bl{font-weight:600}
+
+  .grid{display:grid;grid-template-columns:1fr 288px;gap:18px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .card > header{padding:11px 16px;border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.24em;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .card.book-card{border-top:3px solid var(--accent)}
+
+  .who{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;padding:14px 16px}
+  .field{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .field label{font-size:11px;letter-spacing:.14em;color:var(--ink-soft)}
+  .field input,.field select{width:100%}
+  .field input.num{font-family:var(--mono);text-align:right}
+  .divide{grid-column:1/-1;border-top:1px dashed var(--line);margin-top:2px;padding-top:10px;font-size:11px;letter-spacing:.2em;color:var(--accent)}
+
+  .scroller{overflow-x:auto}
+  .rowcap{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .rowcap thead th{position:sticky;top:0;z-index:3;background:var(--card);box-shadow:0 1px 0 var(--line)}
+  .rowcap tfoot td{position:sticky;bottom:0;z-index:2;background:var(--card);box-shadow:0 -1px 0 var(--ink)}
+  .rowcap tfoot td{border-top:0}
+  .listnote{font-size:11px;letter-spacing:.1em;color:var(--ink-soft);display:flex;align-items:center;gap:10px}
+  table{border-collapse:collapse;width:100%;min-width:560px}
+  th,td{padding:0;text-align:left}
+  thead th{font-size:11px;font-weight:500;letter-spacing:.14em;color:var(--ink-soft);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  thead th.r{text-align:right}
+  tbody td{border-bottom:1px solid var(--hair);padding:3px 10px;vertical-align:middle}
+  tbody tr.rest{background:var(--rest)}
+  tbody tr.today td{background:var(--today)}
+  tbody tr.leave td{background:var(--leave)}
+  tbody tr:hover td{background:var(--hover)}
+  td.date{font-family:var(--mono);font-size:13px;white-space:nowrap;width:1%}
+  td.date .dow{color:var(--ink-soft);margin-left:6px;font-family:var(--sans)}
+  tr.rest td.date .dow{color:var(--acc-normal)}
+  td.t input{width:104px;padding:5px 7px}
+  td.n input{width:70px;padding:5px 7px;font-family:var(--mono);text-align:right}
+  td.item input{width:100%;min-width:130px;padding:5px 7px}
+  td.num{font-family:var(--mono);font-size:13px;text-align:right;white-space:nowrap;width:1%}
+  td.num .zero,.zero{color:var(--zero)}
+  td.mid{text-align:center;width:1%}
+  td.mid input{width:16px;height:16px;accent-color:var(--accent)}
+
+  td.stem{width:132px;padding-right:16px}
+  .stalk{position:relative;height:16px}
+  .stalk::before{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;background:var(--line)}
+  .stalk i{position:absolute;left:1px;top:6px;height:4px;border-radius:0 2px 2px 0;background:var(--accent);opacity:.65;transition:width .35s ease}
+  .stalk b{position:absolute;top:3px;width:9px;height:9px;border-radius:50%;background:var(--accent);transform:translateX(-4px);transition:left .35s ease}
+
+  tfoot td{padding:11px 10px;border-top:1px solid var(--ink);font-size:13px}
+  tfoot .lbl{letter-spacing:.14em;color:var(--ink-soft);font-size:11px}
+  tfoot .sum{font-family:var(--mono);text-align:right;font-size:14px}
+
+  .payout{position:sticky;top:16px}
+  .rows{padding:6px 16px 12px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .row:last-child{border-bottom:0}
+  .row span{font-size:13px;color:var(--ink-soft)}
+  .row strong{font-family:var(--mono);font-weight:500;font-size:15px}
+  .row.minus strong{color:var(--acc-normal)}
+  .split{padding:12px 16px;border-top:1px solid var(--line);background:var(--split-bg)}
+  .split .row{border-bottom:0;padding:6px 0}
+  .split .row span{display:flex;align-items:center;gap:7px}
+  .split .row span::before{content:"";width:9px;height:9px;border-radius:50%}
+  .split .row span::before{background:var(--bk-acc,var(--line))}
+  .total{padding:14px 16px;background:var(--sel-bg);color:var(--sel-fg)}
+  .total span{display:block;font-size:11px;letter-spacing:.24em;opacity:.7}
+  .total strong{font-family:var(--mono);font-weight:400;font-size:31px;letter-spacing:-.01em;display:block;margin-top:2px}
+  .total strong sup{font-size:14px;vertical-align:super;opacity:.7;margin-right:3px}
+  .hint{padding:12px 16px;font-size:12px;color:var(--ink-soft);line-height:1.6;border-top:1px solid var(--line)}
+  .hint code{font-family:var(--mono);font-size:11px;color:var(--stem)}
+
+  .ov td{padding:10px}
+  .ov tr.grp td{background:var(--hair);font-size:11px;letter-spacing:.2em;color:var(--ink-soft);padding:7px 10px}
+  .ov tr.grp td.num{font-family:var(--mono);letter-spacing:0;font-size:13px}
+  .hintline{font-size:11px;color:var(--ink-soft);line-height:1.5;margin-top:2px}
+  .ov td.name{font-size:14px}
+  .ov tfoot td{font-size:14px}
+  .pill{font-size:10px;letter-spacing:.1em;padding:1px 6px;border-radius:4px;background:var(--hair);color:var(--ink-soft);white-space:nowrap}
+
+  .saved{font-size:11px;letter-spacing:.16em;color:var(--stem);opacity:0;transition:opacity .3s}
+  .saved.on{opacity:1}
+  .mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(8,14,13,.6);display:flex;align-items:center;justify-content:center;padding:18px;z-index:60}
+  .modal{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);width:100%;max-width:430px;max-height:88vh;overflow:auto}
+  .modal > header{padding:11px 16px;border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.24em;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:center}
+  .mbody{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+  .mrow{display:flex;gap:8px;flex-wrap:wrap}
+  .guide h3{font-family:var(--serif);font-size:15px;letter-spacing:.1em;margin:18px 0 6px;color:var(--accent)}
+  .guide h3:first-child{margin-top:0}
+  .guide p,.guide li{font-size:13px;line-height:1.75;margin:4px 0}
+  .guide ul{margin:4px 0;padding-left:1.1em}
+  .guide b{font-weight:600}
+  .guide .flow{font-family:var(--mono);font-size:12px;background:var(--hair);padding:9px 11px;border-radius:8px;line-height:1.9}
+  .status{font-size:12px;line-height:1.7;color:var(--ink-soft)}
+  .status b{color:var(--stem);font-weight:500}
+  .status i{font-style:normal;color:var(--acc-normal)}
+  .foot{margin-top:22px;font-size:12px;color:var(--ink-soft);text-align:center;line-height:1.7}
+
+:root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#121A19;
+    --card:#1D2726;
+    --ink:#E9F0EC;
+    --ink-soft:#9AAEA8;
+    --stem:#7FB08E;
+    --bloom:#D97BA0;
+    --pollen:#E0B44A;
+    --line:#3A4A46;
+    --hair:#2A3634;
+    --acc-normal:#E08CB0;
+    --acc-dispatch:#DCB258;
+    --acc-internal:#8FC49E;
+    --btn-bg:#283332;
+    --btn-hover:#33403E;
+    --input-bg:#161F1E;
+    --sel-bg:#E9F0EC;
+    --sel-fg:#121A19;
+    --book-normal:#31232A;
+    --book-dispatch:#322B1C;
+    --book-internal:#1E2E25;
+    --rest:#1A2322;
+    --today:#2C2718;
+    --leave:#2C2028;
+    --hover:#26312F;
+    --zero:#68807A;
+    --split-bg:#182120;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#121A19;
+    --card:#1D2726;
+    --ink:#E9F0EC;
+    --ink-soft:#9AAEA8;
+    --stem:#7FB08E;
+    --bloom:#D97BA0;
+    --pollen:#E0B44A;
+    --line:#3A4A46;
+    --hair:#2A3634;
+    --acc-normal:#E08CB0;
+    --acc-dispatch:#DCB258;
+    --acc-internal:#8FC49E;
+    --btn-bg:#283332;
+    --btn-hover:#33403E;
+    --input-bg:#161F1E;
+    --sel-bg:#E9F0EC;
+    --sel-fg:#121A19;
+    --book-normal:#31232A;
+    --book-dispatch:#322B1C;
+    --book-internal:#1E2E25;
+    --rest:#1A2322;
+    --today:#2C2718;
+    --leave:#2C2028;
+    --hover:#26312F;
+    --zero:#68807A;
+    --split-bg:#182120;
+    }
+  }
+  :root[data-theme="dark"] .masthead svg path[stroke]{stroke:#8FC49E}
+  :root[data-theme="dark"] .masthead svg path[fill]{fill:#8FC49E}
+  :root[data-theme="dark"] .masthead svg circle:first-of-type{fill:#E08CB0}
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]) .masthead svg path[stroke]{stroke:#8FC49E}
+    :root:not([data-theme="light"]) .masthead svg path[fill]{fill:#8FC49E}
+    :root:not([data-theme="light"]) .masthead svg circle:first-of-type{fill:#E08CB0}
+  }
+  @media (max-width:760px){
+    .books{flex-direction:column;max-width:none}
+    .book{flex-direction:row;justify-content:space-between;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:11px 14px}
+    .book:last-child{border-bottom:0}
+  }
+  @media (max-width:900px){
+    .grid{grid-template-columns:1fr}
+    .payout{position:static}
+    td.stem,thead th.stemh{display:none}
+    .books{max-width:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  @media print{
+    :root,:root[data-theme="dark"]{
+      color-scheme:light;
+      --paper:#fff;--card:#fff;--ink:#000;--ink-soft:#444;--line:#999;--hair:#DDD;
+      --btn-bg:#fff;--input-bg:#fff;--sel-bg:#fff;--sel-fg:#000;
+      --book-normal:#fff;--book-dispatch:#fff;--book-internal:#fff;--rest:#F4F4F4;--today:#fff;--leave:#F4F4F4;
+      --hover:transparent;--zero:#888;--split-bg:#fff;
+      --acc-normal:#000;--acc-dispatch:#000;--acc-internal:#000;
+    }
+    html,body{background:#fff}
+    body{background:#fff}
+    .wrap{max-width:none;padding:0}
+    .toolbar,.monthbar .btn,.tabs,.hint,.foot,.saved,.btn.ghost{display:none!important}
+    .grid{grid-template-columns:1fr;gap:10px}
+    .card{border-color:#999;break-inside:avoid}
+    .stalk i,.stalk b{background:#666}
+    input,select{border-color:transparent;background:transparent;-webkit-appearance:none;appearance:none}
+    .rowcap{max-height:none!important;overflow:visible!important}
+    .rowcap thead th,.rowcap tfoot td{position:static;box-shadow:none}
+    .rowcap tfoot td{border-top:1px solid #000}
+    .listnote{display:none}
+    tbody tr:hover td{background:transparent}
+    .total{background:#fff;color:#000;border-top:2px solid #000}
+    .total span{opacity:1}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <svg width="34" height="42" viewBox="0 0 34 42" aria-hidden="true">
+      <path d="M17 41V13" stroke="#3D6B52" stroke-width="1.4"/>
+      <path d="M17 27C11 27 6 23 5 17c6-1 11 3 12 10z" fill="#3D6B52" opacity=".72"/>
+      <path d="M17 33c6 0 11-4 12-10-6-1-11 3-12 10z" fill="#3D6B52" opacity=".45"/>
+      <circle cx="17" cy="9" r="6.4" fill="#8B3A5C"/>
+      <circle cx="17" cy="9" r="2.1" fill="#B8860F"/>
+    </svg>
+    <div class="titles">
+      <h1>茴禧花坊</h1>
+      <p id="subTitle">薪 資 表 · 一 般 ／ 調 度 ／ 內 部</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="toolbar">
+      <span class="saved" id="saved">已儲存</span>
+      <button class="btn" id="btnTheme" aria-label="切換淺色深色">自動</button>
+      <button class="btn hide" id="btnInstall">安裝</button>
+      <button class="btn" id="btnGuide">使用指引</button>
+      <button class="btn" id="btnFill">批次填入</button>
+      <button class="btn" id="btnCopy">複製上月</button>
+      <button class="btn" id="btnCsv">匯出 CSV</button>
+      <button class="btn" id="btnPrint">列印</button>
+    </div>
+  </div>
+
+  <div class="divs" id="divs" role="tablist" aria-label="部門"></div>
+
+  <div class="monthbar">
+    <button class="btn" id="prevM" aria-label="上個月">‹</button>
+    <div class="month" id="monthLabel"></div>
+    <button class="btn" id="nextM" aria-label="下個月">›</button>
+    <button class="btn ghost" id="thisM">回到本月</button>
+  </div>
+
+  <div class="tabs" id="tabs" role="tablist"></div>
+
+  <div class="books" id="books" role="tablist" aria-label="業務別"></div>
+
+  <div class="grid" id="viewStaff">
+    <div>
+      <div class="card book-card" style="margin-bottom:18px">
+        <header>
+          <span>員 工 資 料</span>
+          <button class="btn ghost" id="btnDel">刪除這位員工</button>
+        </header>
+        <div class="who">
+          <div class="field"><label for="fName">姓名</label><input id="fName" placeholder="輸入姓名"></div>
+          <div class="field" id="wrapGroup"><label for="fGroup">類別</label><select id="fGroup"></select></div>
+          <div class="field" id="wrapTitle"><label for="fTitle">職稱</label><select id="fTitle"></select><div class="hintline" id="roleHint"></div></div>
+          <div class="field hide" id="wrapRole"><label for="fRole">職位</label><input id="fRole" placeholder="例：pt"></div>
+          <div class="divide" id="bookLabel">一 般 業 務 的 薪 資 設 定</div>
+          <div class="field">
+            <label for="fType">薪資制</label>
+            <select id="fType">
+              <option value="hourly">時薪制</option>
+              <option value="monthly">月薪制</option>
+              <option value="perjob">計次制</option>
+            </select>
+          </div>
+          <div class="field" data-for="hourly"><label for="fRate">時薪（元）</label><input id="fRate" class="num" type="number" min="0" step="1"></div>
+          <div class="field" data-for="monthly"><label for="fMonthly">月薪（元）</label><input id="fMonthly" class="num" type="number" min="0" step="100"></div>
+          <div class="field" data-for="monthly"><label for="fWorkdays">應出勤天數</label><input id="fWorkdays" class="num" type="number" min="1" step="1"></div>
+          <div class="field" data-for="perjob"><label for="fUnit" id="lblUnit">預設單價（元／次）</label><input id="fUnit" class="num" type="number" min="0" step="10"></div>
+          <div class="field"><label for="fBonus">特別獎金（元）</label><input id="fBonus" class="num" type="number" step="1"></div>
+          <div class="field"><label for="fDeduct">其他扣款（元）</label><input id="fDeduct" class="num" type="number" step="1"></div>
+        </div>
+      </div>
+
+      <div class="card book-card">
+        <header>
+          <span id="tblTitle">每 日 出 勤</span>
+          <span class="listnote"><span id="dayCount"></span><button class="btn ghost" id="btnSort" style="padding:2px 6px">新 → 舊</button></span>
+        </header>
+        <div class="scroller rowcap" id="tscroll">
+          <table>
+            <thead id="thead"></thead>
+            <tbody id="tbody"></tbody>
+            <tfoot id="tfoot"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card payout">
+      <header><span id="payTitle">結 算</span></header>
+      <div class="rows" id="payRows"></div>
+      <div class="split" id="paySplit"></div>
+      <div class="total">
+        <span>本 月 實 發 總 額</span>
+        <strong><sup>NT$</sup><span id="oTotal">0</span></strong>
+      </div>
+      <div class="hint" id="payHint"></div>
+    </div>
+  </div>
+
+  <div class="card hide" id="viewOverview">
+    <header><span>全 員 總 覽</span><span id="ovMonth"></span></header>
+    <div class="scroller">
+      <table class="ov">
+        <thead id="ovHead"></thead>
+        <tbody id="ovBody"></tbody>
+        <tfoot id="ovFoot"></tfoot>
+      </table>
+    </div>
+    <div class="hint">點姓名可切換到個人明細。「匯出 CSV」會匯出這張總覽。</div>
+  </div>
+
+  <p class="foot" id="footNote">資料儲存在這台裝置，切換月份或關閉後仍會保留。建議每月匯出 CSV 備份。</p>
+</div>
+
+<div class="mask hide" id="guideMask">
+  <div class="modal">
+    <header><span>使 用 指 引</span><button class="btn ghost" id="gClose">開始使用</button></header>
+    <div class="mbody guide">
+      <h3>三層結構</h3>
+      <div class="flow">花坊 ／ 景觀<br>　└ 員工（類別・職稱）<br>　　└ 一般業務 ／ 調度支援 ／ 內部施作<br>　　　└ 每日明細</div>
+      <p>最上面先選部門，再選員工，接著選這筆工作屬於哪種業務，最後填每天的資料。三種業務的費率與紀錄完全分開，最後才加總。</p>
+
+      <h3>選對薪資制</h3>
+      <ul>
+        <li><b>時薪制</b>：填上下班時間，薪資＝出勤總時數 × 時薪。下班時間比上班早會自動當成跨夜班。</li>
+        <li><b>月薪制</b>：填月薪與應出勤天數。每天有「請假」欄，勾一天扣「月薪 ÷ 應出勤天數」。</li>
+        <li><b>計次制</b>：填項目與件數。單價留空就套用預設金額，不同價位的案子可各自填單價。</li>
+      </ul>
+
+      <h3>每天怎麼填</h3>
+      <ul>
+        <li>休息時間填分鐘數，會從當日出勤扣掉。</li>
+        <li>列表預設顯示最新 10 筆，往下捲可看整個月；右上角可切換新舊排序。</li>
+        <li><b>批次填入</b>：把固定班表或固定件數一次填進空白日。</li>
+        <li><b>複製上月</b>：把上個月同一本帳的紀錄搬過來，已填的日子不會被覆蓋。</li>
+      </ul>
+
+      <h3>結算與報表</h3>
+      <ul>
+        <li>右側面板由上而下是明細、三本帳小計、實發總額。</li>
+        <li><b>全員總覽</b>依類別分組，可看每組人事成本與全店合計。</li>
+        <li><b>匯出 CSV</b>用 Excel 開不會亂碼；<b>列印</b>會自動轉成白底並展開整月。</li>
+      </ul>
+
+      <h3>備份與換機</h3>
+      <p>資料存在這台裝置的瀏覽器裡，不會上傳。每月結算後按「匯出 CSV」存一份到雲端硬碟或傳給自己，就是最省事的備份。換手機或清除瀏覽器資料時，舊資料不會跟著走，記得先匯出。</p>
+
+      <h3>裝到手機桌面</h3>
+      <ul>
+        <li><b>iPhone</b>：用 Safari 開啟 → 分享鈕 → 加入主畫面。</li>
+        <li><b>Android</b>：Chrome 選單 → 安裝應用程式，或按工具列的「安裝」。</li>
+        <li>裝好後可離線開啟，之前輸入的資料仍在。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var KEY = "huixi:payroll:v4", OLDKEYS = ["huixi:payroll:v3","huixi:payroll:v2"];
+
+  /* 儲存層：在 Claude 內用 window.storage，
+     自行架站（GitHub Pages／Netlify 等）時退回瀏覽器本機儲存 */
+  var store = {
+    get:function(k){
+      if(window.storage){
+        return window.storage.get(k)
+          .then(function(r){ return r ? r.value : localGet(k); })
+          .catch(function(){ return localGet(k); });
+      }
+      return Promise.resolve(localGet(k));
+    },
+    set:function(k,v){
+      localSet(k,v);
+      if(window.storage) return window.storage.set(k,v);
+      return Promise.resolve(null);
+    }
+  };
+  function localGet(k){ try{ return window.localStorage.getItem(k); }catch(e){ return null; } }
+  function localSet(k,v){ try{ window.localStorage.setItem(k,v); }catch(e){} }
+  var DOW = ["日","一","二","三","四","五","六"];
+  var TYPE = { hourly:"時薪制", monthly:"月薪制", perjob:"計次制" };
+  var BOOKS = [
+    { k:"normal",   label:"一般業務", short:"一般", type:"hourly", unit:500,
+      item:"項目",      ph:"例：婚禮花藝",  unitLabel:"預設單價（元／次）" },
+    { k:"dispatch", label:"調度支援", short:"調度", type:"perjob", unit:1000,
+      item:"支援地點／項目", ph:"例：支援三峽門市", unitLabel:"預設支援費（元／次）" },
+    { k:"internal", label:"內部施作", short:"內部", type:"perjob", unit:3000,
+      item:"案場／項目",  ph:"例：中山路案場", unitLabel:"預設施作費（元／件）" }
+  ];
+  var ROLES = {
+    flower: [
+      { g:"業務", items:[ {t:"門市銷售人員", d:""} ] },
+      { g:"行政", items:[ {t:"行政工作", d:""} ] },
+      { g:"花藝", items:[
+          {t:"初階助理", d:""},
+          {t:"中階助理", d:""},
+          {t:"助理設計師", d:""},
+          {t:"初階設計師", d:"全方位出作品"},
+          {t:"中階設計師", d:"有設計技能、研發商品"},
+          {t:"高階設計師", d:"教學、接案、獨當一面"}
+        ] }
+    ]
+  };
+  function roleTree(){ return ROLES[state.div] || null; }
+  function groupIndex(g){
+    var tree = roleTree();
+    if(!tree) return 0;
+    for(var i=0;i<tree.length;i++) if(tree[i].g === g) return i;
+    return tree.length;
+  }
+  function roleDesc(g, t){
+    var tree = roleTree();
+    if(!tree) return "";
+    for(var i=0;i<tree.length;i++){
+      if(tree[i].g !== g) continue;
+      for(var j=0;j<tree[i].items.length;j++) if(tree[i].items[j].t === t) return tree[i].items[j].d;
+    }
+    return "";
+  }
+
+  var DIVS = [
+    { k:"flower", label:"花坊" },
+    { k:"scape",  label:"景觀" }
+  ];
+  var saveTimer = null;
+
+  var state = { y:new Date().getFullYear(), m:new Date().getMonth()+1,
+                div:"flower", divs:{}, active:null, book:"normal", desc:true, staff:[] };
+
+  /* ── 工具 ───────────────────────────── */
+  function uid(){ return "e" + Math.random().toString(36).slice(2,9); }
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+  function key(y,m,d){ return y + "-" + pad(m) + "-" + pad(d); }
+  function daysIn(y,m){ return new Date(y,m,0).getDate(); }
+  function num(v){ var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+  function toMin(t){
+    if(!t) return null;
+    var p = String(t).split(":");
+    if(p.length < 2) return null;
+    var h = parseInt(p[0],10), mi = parseInt(p[1],10);
+    if(isNaN(h) || isNaN(mi)) return null;
+    return h*60 + mi;
+  }
+  function hm(mins){ var s = mins<0?"-":""; mins = Math.abs(mins); return s + Math.floor(mins/60) + ":" + pad(mins%60); }
+  function money(n){ return Math.round(n).toLocaleString("en-US"); }
+  function workdaysOf(y,m){
+    var n = daysIn(y,m), c = 0;
+    for(var d=1; d<=n; d++){ var w = new Date(y,m-1,d).getDay(); if(w!==0 && w!==6) c++; }
+    return c;
+  }
+  function bookMeta(k){
+    for(var i=0;i<BOOKS.length;i++) if(BOOKS[i].k === k) return BOOKS[i];
+    return BOOKS[0];
+  }
+
+  function blankBook(type, unit){
+    return { type:type, rate:180, monthly:30000, workdays:0, unit:unit, bonus:0, deduct:0, days:{} };
+  }
+  function blank(name){
+    var books = {};
+    BOOKS.forEach(function(m){ books[m.k] = blankBook(m.type, m.unit); });
+    return { id:uid(), name:name||"", grp:"", role:"", books:books };
+  }
+  function current(){
+    for(var i=0;i<state.staff.length;i++) if(state.staff[i].id === state.active) return state.staff[i];
+    return state.staff[0];
+  }
+  function bk(emp, k){ return emp.books[k || state.book]; }
+  function isOverview(){ return state.active === "__all__"; }
+
+  /* ── 計算 ───────────────────────────── */
+  function dayMinutes(rec){
+    if(!rec || rec.leave) return 0;
+    var a = toMin(rec.in), b = toMin(rec.out);
+    if(a === null || b === null) return 0;
+    var d = b - a;
+    if(d < 0) d += 1440;
+    d -= (parseInt(rec.brk,10) || 0);
+    return d > 0 ? d : 0;
+  }
+  function dayAmount(book, rec){
+    if(!rec) return 0;
+    var q = num(rec.qty);
+    if(!q) return 0;
+    var p = (rec.price === "" || rec.price === undefined || rec.price === null) ? num(book.unit) : num(rec.price);
+    return q * p;
+  }
+
+  function totals(book, y, m){
+    y = y || state.y; m = m || state.m;
+    var n = daysIn(y,m);
+    var t = { type:book.type, mins:0, days:0, hrs:0, qty:0, amount:0, leaveDays:0,
+              base:0, daily:0, workdays:0, wage:0, leaveCut:0,
+              bonus:num(book.bonus), deduct:num(book.deduct), total:0, unitAvg:0, effHourly:0 };
+    for(var d=1; d<=n; d++){
+      var rec = book.days[key(y,m,d)];
+      if(!rec) continue;
+      if(t.type === "perjob"){
+        if(num(rec.qty) > 0){ t.qty += num(rec.qty); t.amount += dayAmount(book, rec); t.days++; }
+      }else{
+        if(rec.leave){ t.leaveDays++; continue; }
+        var v = dayMinutes(rec);
+        if(v > 0){ t.mins += v; t.days++; }
+      }
+    }
+    t.hrs = t.mins / 60;
+    if(t.type === "hourly"){
+      t.wage = t.hrs * num(book.rate);
+    }else if(t.type === "monthly"){
+      t.base = num(book.monthly);
+      t.workdays = parseInt(book.workdays,10) || workdaysOf(y,m);
+      t.daily = t.workdays > 0 ? t.base / t.workdays : 0;
+      t.leaveCut = t.daily * t.leaveDays;
+      t.wage = t.base - t.leaveCut;
+    }else{
+      t.wage = t.amount;
+      t.unitAvg = t.qty > 0 ? t.amount / t.qty : 0;
+    }
+    t.total = t.wage + t.bonus - t.deduct;
+    t.effHourly = t.hrs > 0 ? t.total / t.hrs : 0;
+    return t;
+  }
+  function used(book){
+    var t = totals(book);
+    return t.days > 0 || t.leaveDays > 0 || t.bonus !== 0 || t.deduct !== 0 || (t.type === "monthly" && t.base > 0);
+  }
+  function empTotal(emp){
+    var sum = 0;
+    BOOKS.forEach(function(m){ sum += totals(emp.books[m.k]).total; });
+    return sum;
+  }
+
+  /* ── 儲存 ───────────────────────────── */
+  function stash(){
+    state.divs[state.div] = { staff:state.staff, active:state.active, book:state.book };
+  }
+  function divStaff(k){ return k === state.div ? state.staff : (state.divs[k] ? state.divs[k].staff : []); }
+  function divTotal(k){
+    var s = 0;
+    divStaff(k).forEach(function(e){ s += empTotal(e); });
+    return s;
+  }
+  function useDiv(k){
+    stash();
+    state.div = k;
+    var d = state.divs[k];
+    state.staff = d.staff; state.active = d.active; state.book = d.book || "normal";
+  }
+  function divMeta(k){ return DIVS[0].k === k ? DIVS[0] : DIVS[1]; }
+
+  function save(){
+    stash();
+    var payload = JSON.stringify({ v:4, savedAt:Date.now(), div:state.div, desc:state.desc, divs:state.divs });
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      store.set(KEY, payload).then(function(){
+        var el = document.getElementById("saved");
+        el.classList.add("on");
+        setTimeout(function(){ el.classList.remove("on"); }, 1200);
+      }).catch(function(){});
+    }, 400);
+  }
+
+  /* ── 頁首與切換 ─────────────────────── */
+  function setAccent(){
+    document.documentElement.style.setProperty("--accent", isOverview() ? "var(--ink)" : ("var(--acc-" + state.book + ")"));
+  }
+  function drawDivs(){
+    var box = document.getElementById("divs");
+    box.innerHTML = "";
+    DIVS.forEach(function(m){
+      var b = document.createElement("button");
+      b.className = "divi"; b.type = "button"; b.setAttribute("role","tab");
+      b.setAttribute("aria-selected", state.div === m.k ? "true" : "false");
+      b.innerHTML = '<span class="dn">' + m.label + '</span><span class="dv">NT$ ' + money(divTotal(m.k)) + "</span>";
+      b.onclick = function(){ if(state.div !== m.k){ useDiv(m.k); save(); drawAll(); } };
+      box.appendChild(b);
+    });
+    document.getElementById("subTitle").textContent =
+      divMeta(state.div).label.split("").join(" ") + " · 一 般 ／ 調 度 ／ 內 部";
+  }
+
+  function drawMonth(){
+    document.getElementById("monthLabel").innerHTML = state.y + " 年 <em>" + state.m + "</em> 月";
+    document.getElementById("ovMonth").textContent = state.y + "／" + pad(state.m);
+  }
+
+  function drawTabs(){
+    var box = document.getElementById("tabs");
+    box.innerHTML = "";
+    var listed = state.staff.map(function(e, i){ return { e:e, i:i }; });
+    if(roleTree()){
+      listed.sort(function(a, b){
+        var ga = groupIndex(a.e.grp || ""), gb = groupIndex(b.e.grp || "");
+        return ga === gb ? a.i - b.i : ga - gb;
+      });
+    }
+    listed.map(function(x){ return x.e; }).forEach(function(e){
+      var b = document.createElement("button");
+      b.className = "tab"; b.type = "button"; b.setAttribute("role","tab");
+      b.setAttribute("aria-selected", e.id === state.active ? "true" : "false");
+      b.textContent = (e.name || "未命名") + (e.role ? "・" + e.role : "");
+      b.onclick = function(){ state.active = e.id; save(); drawAll(); };
+      box.appendChild(b);
+    });
+    var ov = document.createElement("button");
+    ov.className = "tab"; ov.type = "button";
+    ov.setAttribute("aria-selected", isOverview() ? "true" : "false");
+    ov.textContent = "全員總覽";
+    ov.onclick = function(){ state.active = "__all__"; save(); drawAll(); };
+    box.appendChild(ov);
+
+    var add = document.createElement("button");
+    add.className = "btn ghost"; add.type = "button"; add.textContent = "＋ 新增員工";
+    add.onclick = function(){
+      var e = blank("");
+      var tree = roleTree();
+      if(tree){ e.grp = tree[0].g; e.role = tree[0].items[0].t; }
+      state.staff.push(e); state.active = e.id; state.book = "normal";
+      save(); drawAll();
+      document.getElementById("fName").focus();
+    };
+    box.appendChild(add);
+  }
+
+  function drawBooks(){
+    var box = document.getElementById("books");
+    if(isOverview()){ box.classList.add("hide"); return; }
+    box.classList.remove("hide");
+    var e = current();
+    box.innerHTML = "";
+    BOOKS.forEach(function(m){
+      var t = totals(e.books[m.k]);
+      var b = document.createElement("button");
+      b.className = "book"; b.type = "button"; b.setAttribute("role","tab");
+      b.setAttribute("data-key", m.k);
+      b.setAttribute("aria-selected", state.book === m.k ? "true" : "false");
+      b.style.setProperty("--bk-acc", "var(--acc-" + m.k + ")");
+      b.style.setProperty("--bk-bg", "var(--book-" + m.k + ")");
+      b.innerHTML = '<span class="bl">' + m.label + ' <span class="pill">' + TYPE[t.type] + '</span></span>'
+                  + '<span class="bv">NT$ ' + money(t.total) + "</span>";
+      b.onclick = function(){ state.book = m.k; save(); drawAll(); };
+      box.appendChild(b);
+    });
+  }
+
+  /* ── 員工資料 ───────────────────────── */
+  function drawWho(){
+    var e = current(), b = bk(e), m = bookMeta(state.book), t = b.type || "hourly";
+    document.getElementById("fName").value = e.name;
+    document.getElementById("fRole").value = e.role;
+    drawRoleFields(e);
+    document.getElementById("bookLabel").textContent = m.label.split("").join(" ") + " 的 薪 資 設 定";
+    document.getElementById("fType").value = t;
+    document.getElementById("fRate").value = b.rate;
+    document.getElementById("fMonthly").value = b.monthly;
+    document.getElementById("fWorkdays").value = b.workdays || "";
+    document.getElementById("fWorkdays").placeholder = workdaysOf(state.y, state.m) + "（預設平日）";
+    document.getElementById("fUnit").value = b.unit;
+    document.getElementById("lblUnit").textContent = m.unitLabel;
+    document.getElementById("fBonus").value = b.bonus;
+    document.getElementById("fDeduct").value = b.deduct;
+
+    var fields = document.querySelectorAll(".who .field[data-for]");
+    for(var i=0;i<fields.length;i++){
+      fields[i].classList.toggle("hide", fields[i].getAttribute("data-for") !== t);
+    }
+    document.getElementById("tblTitle").textContent =
+      (t === "perjob" ? "每 日 件 數" : "每 日 出 勤") + " · " + m.label;
+    document.getElementById("btnFill").textContent = t === "perjob" ? "批次填入件數" : "批次填入班表";
+  }
+
+  function drawRoleFields(e){
+    var tree = roleTree();
+    var wrapG = document.getElementById("wrapGroup"), wrapT = document.getElementById("wrapTitle"),
+        wrapR = document.getElementById("wrapRole");
+    if(!tree){
+      wrapG.classList.add("hide"); wrapT.classList.add("hide"); wrapR.classList.remove("hide");
+      return;
+    }
+    wrapG.classList.remove("hide"); wrapT.classList.remove("hide"); wrapR.classList.add("hide");
+
+    var gsel = document.getElementById("fGroup"), tsel = document.getElementById("fTitle");
+    var g = e.grp || tree[0].g;
+    gsel.innerHTML = tree.map(function(x){
+      return '<option value="' + x.g + '"' + (x.g === g ? " selected" : "") + ">" + x.g + "</option>";
+    }).join("");
+
+    var items = [];
+    tree.forEach(function(x){ if(x.g === g) items = x.items; });
+    var opts = items.map(function(it){
+      return '<option value="' + it.t + '"' + (it.t === e.role ? " selected" : "") + ">" + it.t + "</option>";
+    });
+    var known = items.some(function(it){ return it.t === e.role; });
+    if(e.role && !known) opts.unshift('<option value="' + e.role + '" selected>' + e.role + "（舊資料）</option>");
+    tsel.innerHTML = opts.join("");
+    if(!e.role) e.role = items[0] ? items[0].t : "";
+    document.getElementById("roleHint").textContent = roleDesc(g, e.role);
+  }
+
+  /* ── 明細表 ─────────────────────────── */
+  function drawTable(){
+    var e = current(), b = bk(e), m = bookMeta(state.book), t = b.type || "hourly";
+    var n = daysIn(state.y, state.m);
+    var head = document.getElementById("thead"), body = document.getElementById("tbody"), foot = document.getElementById("tfoot");
+    var today = new Date();
+    var todayKey = key(today.getFullYear(), today.getMonth()+1, today.getDate());
+
+    head.innerHTML = t === "perjob"
+      ? '<tr><th>日期</th><th>' + m.item + '</th><th class="r">件數</th><th class="r">單價</th><th class="r">小計</th><th class="stemh"></th></tr>'
+      : '<tr><th>日期</th><th>上班時間</th><th>下班時間</th><th class="r">休息（分）</th>'
+        + (t === "monthly" ? '<th class="r">請假</th>' : "")
+        + '<th class="r">出勤時數</th><th class="r">出勤分鐘</th><th class="stemh"></th></tr>';
+
+    var peak = 1, i;
+    for(i=1;i<=n;i++){
+      var r0 = b.days[key(state.y,state.m,i)];
+      peak = Math.max(peak, t === "perjob" ? dayAmount(b,r0) : dayMinutes(r0));
+    }
+
+    var keep = document.getElementById("tscroll").scrollTop;
+    body.innerHTML = "";
+    var order = [];
+    for(i=1; i<=n; i++) order.push(i);
+    if(state.desc) order.reverse();
+    order.forEach(function(d){
+        var k = key(state.y, state.m, d);
+        var rec = b.days[k] || {};
+        var w = new Date(state.y, state.m-1, d).getDay();
+        var tr = document.createElement("tr"), cls = [];
+        if(w === 0 || w === 6) cls.push("rest");
+        if(k === todayKey) cls.push("today");
+        if(rec.leave && t === "monthly") cls.push("leave");
+        tr.className = cls.join(" ");
+
+        function touch(){ if(!b.days[k]) b.days[k] = {}; return b.days[k]; }
+        function refresh(){ save(); drawTable(); drawPayout(); drawBooks(); }
+
+        var td1 = document.createElement("td");
+        td1.className = "date";
+        td1.innerHTML = state.m + "/" + d + '<span class="dow">' + DOW[w] + "</span>";
+        tr.appendChild(td1);
+
+        var value = 0;
+
+        if(t === "perjob"){
+          var tdI = document.createElement("td");
+          tdI.className = "item";
+          var ii = document.createElement("input");
+          ii.type = "text"; ii.value = rec.item || ""; ii.placeholder = m.ph;
+          ii.setAttribute("aria-label", state.m + "月" + d + "日項目");
+          ii.onchange = function(){ touch().item = ii.value; save(); };
+          tdI.appendChild(ii); tr.appendChild(tdI);
+
+          var tdQ = document.createElement("td");
+          tdQ.className = "n"; tdQ.style.textAlign = "right";
+          var qi = document.createElement("input");
+          qi.type = "number"; qi.min = "0"; qi.step = "1";
+          qi.value = rec.qty || ""; qi.placeholder = "0";
+          qi.setAttribute("aria-label", state.m + "月" + d + "日件數");
+          qi.onchange = function(){ touch().qty = num(qi.value); refresh(); };
+          tdQ.appendChild(qi); tr.appendChild(tdQ);
+
+          var tdP = document.createElement("td");
+          tdP.className = "n"; tdP.style.textAlign = "right";
+          var pi = document.createElement("input");
+          pi.type = "number"; pi.min = "0"; pi.step = "10";
+          pi.value = (rec.price === undefined || rec.price === null) ? "" : rec.price;
+          pi.placeholder = num(b.unit);
+          pi.setAttribute("aria-label", state.m + "月" + d + "日單價");
+          pi.onchange = function(){ touch().price = pi.value === "" ? "" : num(pi.value); refresh(); };
+          tdP.appendChild(pi); tr.appendChild(tdP);
+
+          value = dayAmount(b, rec);
+          var tdA = document.createElement("td");
+          tdA.className = "num";
+          tdA.innerHTML = value ? money(value) : '<span class="zero">—</span>';
+          tr.appendChild(tdA);
+
+        }else{
+          ["in","out"].forEach(function(field){
+            var td = document.createElement("td");
+            td.className = "t";
+            var inp = document.createElement("input");
+            inp.type = "time"; inp.value = rec[field] || "";
+            inp.disabled = !!(rec.leave && t === "monthly");
+            inp.setAttribute("aria-label", state.m + "月" + d + "日" + (field === "in" ? "上班" : "下班") + "時間");
+            inp.onchange = function(){ touch()[field] = inp.value; refresh(); };
+            td.appendChild(inp); tr.appendChild(td);
+          });
+
+          var tdB = document.createElement("td");
+          tdB.className = "n"; tdB.style.textAlign = "right";
+          var bi = document.createElement("input");
+          bi.type = "number"; bi.min = "0"; bi.step = "5";
+          bi.value = rec.brk || ""; bi.placeholder = "0";
+          bi.setAttribute("aria-label", state.m + "月" + d + "日休息分鐘");
+          bi.onchange = function(){ touch().brk = parseInt(bi.value,10) || 0; refresh(); };
+          tdB.appendChild(bi); tr.appendChild(tdB);
+
+          if(t === "monthly"){
+            var tdL = document.createElement("td");
+            tdL.className = "mid";
+            var ci = document.createElement("input");
+            ci.type = "checkbox"; ci.checked = !!rec.leave;
+            ci.setAttribute("aria-label", state.m + "月" + d + "日請假");
+            ci.onchange = function(){ touch().leave = ci.checked; refresh(); };
+            tdL.appendChild(ci); tr.appendChild(tdL);
+          }
+
+          value = dayMinutes(rec);
+          var tdH = document.createElement("td");
+          tdH.className = "num";
+          tdH.innerHTML = (rec.leave && t === "monthly") ? '<span class="zero">請假</span>'
+                        : (value ? hm(value) : '<span class="zero">—</span>');
+          tr.appendChild(tdH);
+
+          var tdM = document.createElement("td");
+          tdM.className = "num";
+          tdM.innerHTML = value ? value : '<span class="zero">0</span>';
+          tr.appendChild(tdM);
+        }
+
+        var tdS = document.createElement("td");
+        tdS.className = "stem";
+        var pct = value ? Math.max(6, Math.round(value / peak * 100)) : 0;
+        tdS.innerHTML = value
+          ? '<div class="stalk"><i style="width:' + pct + '%"></i><b style="left:' + pct + '%"></b></div>'
+          : '<div class="stalk"></div>';
+        tr.appendChild(tdS);
+
+        body.appendChild(tr);
+    });
+
+    var s = totals(b);
+    foot.innerHTML = t === "perjob"
+      ? '<tr><td class="lbl" colspan="2">' + m.label + ' 合 計</td><td class="sum">' + s.qty + '</td><td class="sum">—</td><td class="sum">' + money(s.amount) + '</td><td class="stem"></td></tr>'
+      : '<tr><td class="lbl" colspan="' + (t === "monthly" ? 5 : 4) + '">' + m.label + ' 合 計</td><td class="sum">' + hm(s.mins) + '</td><td class="sum">' + s.mins + '</td><td class="stem"></td></tr>';
+
+    document.getElementById("dayCount").textContent = n + " 天";
+    document.getElementById("btnSort").textContent = state.desc ? "新 → 舊" : "舊 → 新";
+
+    var sc = document.getElementById("tscroll");
+    sc.style.maxHeight = "";
+    if(body.rows.length > 10){
+      var h = 0;
+      for(i=0; i<10; i++) h += body.rows[i].offsetHeight;
+      var th = head.rows[0] ? head.rows[0].offsetHeight : 0;
+      var tf = foot.rows[0] ? foot.rows[0].offsetHeight : 0;
+      sc.style.maxHeight = Math.round(h + th + tf) + "px";
+    }
+    sc.scrollTop = keep;
+  }
+
+  /* ── 結算 ───────────────────────────── */
+  function drawPayout(){
+    var e = current(), b = bk(e), m = bookMeta(state.book), t = totals(b), rows = [];
+    function add(l, v, minus){ rows.push({ l:l, v:v, m:minus }); }
+
+    document.getElementById("payTitle").textContent = m.label.split("").join(" ") + " 結 算";
+
+    if(t.type === "hourly"){
+      add("出勤天數", t.days + " 天");
+      add("出勤總分鐘", t.mins);
+      add("出勤總時數", t.hrs.toFixed(2));
+      add("時薪", money(num(b.rate)));
+      add("工時薪資", money(t.wage));
+    }else if(t.type === "monthly"){
+      add("月薪", money(t.base));
+      add("應出勤天數", t.workdays + " 天");
+      add("日薪換算", money(t.daily));
+      add("實際出勤", t.days + " 天");
+      add("請假天數", t.leaveDays + " 天");
+      if(t.leaveCut) add("請假扣薪", "−" + money(t.leaveCut), true);
+    }else{
+      add("有件數天數", t.days + " 天");
+      add("總件數", t.qty);
+      add("平均單價", money(t.unitAvg));
+      add("計件薪資", money(t.amount));
+    }
+    if(t.bonus) add("特別獎金", "+" + money(t.bonus));
+    if(t.deduct) add("其他扣款", "−" + money(t.deduct), true);
+    add(m.label + "小計", money(t.total));
+
+    document.getElementById("payRows").innerHTML = rows.map(function(r){
+      return '<div class="row' + (r.m ? " minus" : "") + '"><span>' + r.l + "</span><strong>" + r.v + "</strong></div>";
+    }).join("");
+
+    var grand = 0;
+    document.getElementById("paySplit").innerHTML = BOOKS.map(function(bm){
+      var bt = totals(e.books[bm.k]);
+      grand += bt.total;
+      return '<div class="row" style="--bk-acc:var(--acc-' + bm.k + ')"><span>' + bm.label
+           + "</span><strong>" + money(bt.total) + "</strong></div>";
+    }).join("");
+    document.getElementById("oTotal").textContent = money(grand);
+
+    var hint = {
+      hourly:"工時薪資 = <code>出勤總時數 × 時薪</code>。下班早於上班時自動視為跨夜班次。",
+      monthly:"請假一天扣 <code>月薪 ÷ 應出勤天數</code>。應出勤天數留空時，預設為當月平日天數。",
+      perjob:"單價留空就套用預設金額，同一人接不同價位的案子也算得出來。"
+    };
+    document.getElementById("payHint").innerHTML = hint[t.type]
+      + "<br>三種業務的薪資制、費率、獎金、扣款各自獨立，最後加總為實發總額。";
+  }
+
+  /* ── 總覽 ───────────────────────────── */
+  function drawOverview(){
+    var head = document.getElementById("ovHead");
+    var body = document.getElementById("ovBody");
+    var foot = document.getElementById("ovFoot");
+    var sums = {}, grand = 0;
+    BOOKS.forEach(function(m){ sums[m.k] = 0; });
+
+    head.innerHTML = "<tr><th>姓名</th>"
+      + BOOKS.map(function(m){ return '<th class="r">' + m.label + "</th>"; }).join("")
+      + '<th class="r">實發總額</th></tr>';
+
+    body.innerHTML = "";
+
+    var tree = roleTree(), groups = [];
+    if(tree){
+      tree.forEach(function(x){ groups.push({ g:x.g, list:[] }); });
+      groups.push({ g:"未分類", list:[] });
+      state.staff.forEach(function(e){
+        var hit = groups[groups.length-1];
+        groups.forEach(function(gr){ if(gr.g === (e.grp || "")) hit = gr; });
+        hit.list.push(e);
+      });
+      groups = groups.filter(function(gr){ return gr.list.length; });
+    }else{
+      groups = [{ g:"", list:state.staff.slice() }];
+    }
+
+    function addRow(e){
+      var line = 0;
+      var cells = BOOKS.map(function(m){
+        var b = e.books[m.k], t = totals(b);
+        sums[m.k] += t.total; line += t.total;
+        if(!used(b)) return '<td class="num"><span class="zero">—</span></td>';
+        var vol = t.type === "perjob" ? (t.qty + " 件") : (t.hrs.toFixed(2) + " 時");
+        return '<td class="num">' + money(t.total)
+             + '<br><span class="pill">' + TYPE[t.type] + "</span> <span class=\"zero\">" + vol + "</span></td>";
+      }).join("");
+      grand += line;
+
+      var tr = document.createElement("tr");
+      tr.innerHTML = '<td class="name"><button class="btn ghost" style="padding:0">' + (e.name || "未命名")
+                   + "</button>" + (e.role ? '<br><span class="zero" style="font-size:11px">' + e.role + "</span>" : "") + "</td>"
+                   + cells + '<td class="num"><strong>' + money(line) + "</strong></td>";
+      tr.querySelector("button").onclick = function(){ state.active = e.id; save(); drawAll(); };
+      body.appendChild(tr);
+      return line;
+    }
+
+    groups.forEach(function(gr){
+      var sub = 0;
+      if(gr.g){
+        var h = document.createElement("tr");
+        h.className = "grp";
+        h.innerHTML = "<td>" + gr.g + "</td>"
+                    + BOOKS.map(function(){ return "<td></td>"; }).join("")
+                    + '<td class="num" data-sub></td>';
+        body.appendChild(h);
+        gr.list.forEach(function(e){ sub += addRow(e); });
+        h.querySelector("[data-sub]").textContent = money(sub);
+      }else{
+        gr.list.forEach(function(e){ addRow(e); });
+      }
+    });
+
+    foot.innerHTML = '<tr><td class="lbl">全 店 合 計</td>'
+      + BOOKS.map(function(m){ return '<td class="sum">' + money(sums[m.k]) + "</td>"; }).join("")
+      + '<td class="sum"><strong>' + money(grand) + "</strong></td></tr>";
+  }
+
+  function drawAll(){
+    setAccent(); drawDivs(); drawMonth(); drawTabs(); drawBooks();
+    var ov = isOverview();
+    document.getElementById("viewStaff").classList.toggle("hide", ov);
+    document.getElementById("viewOverview").classList.toggle("hide", !ov);
+    ["btnFill","btnCopy","btnDel"].forEach(function(id){
+      document.getElementById(id).classList.toggle("hide", ov);
+    });
+    if(ov) drawOverview();
+    else{ drawWho(); drawTable(); drawPayout(); }
+  }
+
+  /* ── 事件 ───────────────────────────── */
+  function bindEmp(id, prop){
+    document.getElementById(id).oninput = function(){
+      current()[prop] = this.value;
+      save();
+      if(prop === "name") drawTabs();
+    };
+  }
+  bindEmp("fName","name");
+  bindEmp("fRole","role");
+
+  function bindBook(id, prop){
+    document.getElementById(id).oninput = function(){
+      bk(current())[prop] = this.value === "" ? 0 : num(this.value);
+      save(); drawPayout(); drawBooks();
+    };
+  }
+  bindBook("fRate","rate");
+  bindBook("fMonthly","monthly");
+  bindBook("fWorkdays","workdays");
+  bindBook("fUnit","unit");
+  bindBook("fBonus","bonus");
+  bindBook("fDeduct","deduct");
+
+  document.getElementById("btnSort").onclick = function(){
+    state.desc = !state.desc;
+    save(); drawTable();
+    document.getElementById("tscroll").scrollTop = 0;
+  };
+
+  document.getElementById("fGroup").onchange = function(){
+    var e = current(), tree = roleTree();
+    e.grp = this.value;
+    tree.forEach(function(x){ if(x.g === e.grp) e.role = x.items[0] ? x.items[0].t : ""; });
+    save(); drawRoleFields(e); drawTabs();
+  };
+  document.getElementById("fTitle").onchange = function(){
+    var e = current();
+    e.role = this.value;
+    document.getElementById("roleHint").textContent = roleDesc(e.grp || "", e.role);
+    save(); drawTabs();
+  };
+
+  document.getElementById("fType").onchange = function(){
+    bk(current()).type = this.value;
+    save(); drawAll();
+  };
+
+  document.getElementById("prevM").onclick = function(){ state.m--; if(state.m<1){state.m=12;state.y--;} drawAll(); };
+  document.getElementById("nextM").onclick = function(){ state.m++; if(state.m>12){state.m=1;state.y++;} drawAll(); };
+  document.getElementById("thisM").onclick = function(){ var n=new Date(); state.y=n.getFullYear(); state.m=n.getMonth()+1; drawAll(); };
+
+  document.getElementById("btnDel").onclick = function(){
+    if(state.staff.length <= 1){ alert("至少要保留一位員工。"); return; }
+    var e = current();
+    if(!confirm("刪除「" + (e.name || "未命名") + "」的一般業務與景觀設計所有資料？此動作無法復原。")) return;
+    state.staff = state.staff.filter(function(x){ return x.id !== e.id; });
+    state.active = state.staff[0].id;
+    save(); drawAll();
+  };
+
+  document.getElementById("btnFill").onclick = function(){
+    var e = current(), b = bk(e), m = bookMeta(state.book), t = b.type || "hourly";
+    var n = daysIn(state.y, state.m), filled = 0, d, w, k, rec;
+
+    if(t === "perjob"){
+      var q = prompt(m.label + "：每天填入幾件？（只填入尚未輸入的日子）", "1");
+      if(q === null) return;
+      q = num(q);
+      if(q <= 0){ alert("請輸入大於 0 的件數。"); return; }
+      var skipR = confirm("週六、週日要跳過嗎？\n確定＝跳過週末，取消＝所有日子都填。");
+      for(d=1; d<=n; d++){
+        w = new Date(state.y, state.m-1, d).getDay();
+        if(skipR && (w===0 || w===6)) continue;
+        k = key(state.y, state.m, d); rec = b.days[k];
+        if(rec && num(rec.qty) > 0) continue;
+        b.days[k] = { item:(rec && rec.item) || "", qty:q, price:(rec && rec.price) || "" };
+        filled++;
+      }
+    }else{
+      var s = prompt(m.label + "：填入固定班表（格式 上班-下班，例：10:00-19:00）\n只會填入尚未輸入的日子。", "10:00-19:00");
+      if(!s) return;
+      var p = s.split("-");
+      if(p.length !== 2 || toMin(p[0].trim()) === null || toMin(p[1].trim()) === null){
+        alert("格式不符，請用 10:00-19:00 這種寫法。"); return;
+      }
+      var skip = confirm("週六、週日要跳過嗎？\n確定＝跳過週末，取消＝所有日子都填。");
+      for(d=1; d<=n; d++){
+        w = new Date(state.y, state.m-1, d).getDay();
+        if(skip && (w===0 || w===6)) continue;
+        k = key(state.y, state.m, d); rec = b.days[k];
+        if(rec && (rec.in || rec.out || rec.leave)) continue;
+        b.days[k] = { in:p[0].trim(), out:p[1].trim(), brk:(rec && rec.brk) || 0 };
+        filled++;
+      }
+    }
+    save(); drawTable(); drawPayout(); drawBooks();
+    if(!filled) alert("這個月已經填滿了，沒有空白的日子。");
+  };
+
+  document.getElementById("btnCopy").onclick = function(){
+    var e = current(), b = bk(e), m = bookMeta(state.book);
+    var py = state.m === 1 ? state.y - 1 : state.y;
+    var pm = state.m === 1 ? 12 : state.m - 1;
+    if(!confirm("把 " + py + " 年 " + pm + " 月的「" + m.label + "」紀錄複製到本月？\n本月已填的日子不會被覆蓋。")) return;
+    var pn = daysIn(py,pm), n = daysIn(state.y,state.m), copied = 0;
+    for(var d=1; d<=Math.min(pn,n); d++){
+      var src = b.days[key(py,pm,d)];
+      if(!src) continue;
+      var k = key(state.y,state.m,d), cur = b.days[k];
+      if(cur && (cur.in || cur.out || cur.qty || cur.leave)) continue;
+      b.days[k] = JSON.parse(JSON.stringify(src));
+      copied++;
+    }
+    save(); drawTable(); drawPayout(); drawBooks();
+    alert(copied ? ("已複製 " + copied + " 天。") : "上個月沒有可複製的紀錄。");
+  };
+
+  /* 淺色／深色 */
+  var THEMEKEY = "huixi:theme", themeMode = "auto";
+  function applyTheme(){
+    var root = document.documentElement;
+    if(themeMode === "auto") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", themeMode);
+    document.getElementById("btnTheme").textContent =
+      themeMode === "auto" ? "自動" : (themeMode === "light" ? "淺色" : "深色");
+  }
+  document.getElementById("btnTheme").onclick = function(){
+    themeMode = themeMode === "auto" ? "light" : (themeMode === "light" ? "dark" : "auto");
+    applyTheme();
+    store.set(THEMEKEY, themeMode).catch(function(){});
+  };
+  store.get(THEMEKEY).then(function(v){
+    if(v === "light" || v === "dark" || v === "auto"){ themeMode = v; applyTheme(); }
+  }).catch(function(){});
+  applyTheme();
+
+  document.getElementById("btnPrint").onclick = function(){ window.print(); };
+
+  document.getElementById("btnCsv").onclick = function(){
+    var rows = [], name, d, k, rec;
+
+    if(isOverview()){
+      name = "全員總覽";
+      rows.push(["茴禧花坊薪資總覽（" + divMeta(state.div).label + "）", state.y + "年" + state.m + "月"], []);
+      var head = ["姓名","類別","職稱"];
+      BOOKS.forEach(function(m){
+        head.push(m.short + "薪資制", m.short + "時數", m.short + "件數", m.short + "小計");
+      });
+      head.push("實發總額");
+      rows.push(head);
+
+      var sums = {}, grand = 0;
+      BOOKS.forEach(function(m){ sums[m.k] = 0; });
+      state.staff.forEach(function(e){
+        var line = [e.name, e.grp || "", e.role], sub = 0;
+        BOOKS.forEach(function(m){
+          var t = totals(e.books[m.k]);
+          sums[m.k] += t.total; sub += t.total;
+          line.push(TYPE[t.type], t.hrs.toFixed(2), t.qty, Math.round(t.total));
+        });
+        line.push(Math.round(sub));
+        grand += sub;
+        rows.push(line);
+      });
+      var last = ["全店合計","",""];
+      BOOKS.forEach(function(m){ last.push("","","",Math.round(sums[m.k])); });
+      last.push(Math.round(grand));
+      rows.push([], last);
+    }else{
+      var e2 = current(), n = daysIn(state.y, state.m);
+      name = e2.name || "未命名";
+      rows.push(["茴禧花坊薪資表（" + divMeta(state.div).label + "）", state.y + "年" + state.m + "月"]);
+      rows.push(["姓名", e2.name, "類別", e2.grp || "", "職稱", e2.role]);
+
+      BOOKS.forEach(function(m){
+        var b = e2.books[m.k], t = totals(b);
+        rows.push([], ["【" + m.label + "】", TYPE[t.type]]);
+        if(t.type === "perjob"){
+          rows.push(["日期","星期","項目","件數","單價","小計"]);
+          for(d=1; d<=n; d++){
+            k = key(state.y,state.m,d); rec = b.days[k] || {};
+            rows.push([state.m + "月" + d + "日", DOW[new Date(state.y,state.m-1,d).getDay()],
+                       rec.item || "", rec.qty || 0,
+                       (rec.price === "" || rec.price === undefined) ? num(b.unit) : rec.price,
+                       Math.round(dayAmount(b, rec))]);
+          }
+          rows.push(["總件數", t.qty], ["計件薪資", Math.round(t.amount)]);
+        }else{
+          rows.push(["日期","星期","上班時間","下班時間","休息(分)","請假","出勤分鐘數","出勤小時數"]);
+          for(d=1; d<=n; d++){
+            k = key(state.y,state.m,d); rec = b.days[k] || {};
+            var mins = dayMinutes(rec);
+            rows.push([state.m + "月" + d + "日", DOW[new Date(state.y,state.m-1,d).getDay()],
+                       rec.in || "", rec.out || "", rec.brk || 0, rec.leave ? "是" : "",
+                       mins, (mins/60).toFixed(2)]);
+          }
+          rows.push(["合計分鐘數", t.mins], ["合計小時數", t.hrs.toFixed(2)]);
+          if(t.type === "monthly"){
+            rows.push(["月薪", Math.round(t.base)], ["應出勤天數", t.workdays],
+                      ["請假天數", t.leaveDays], ["請假扣薪", Math.round(t.leaveCut)]);
+          }else{
+            rows.push(["時薪", num(b.rate)]);
+          }
+          rows.push(["薪資", Math.round(t.wage)]);
+        }
+        rows.push(["特別獎金", Math.round(t.bonus)], ["其他扣款", Math.round(t.deduct)],
+                  [m.label + "小計", Math.round(t.total)]);
+      });
+      rows.push([], ["實發總額", Math.round(empTotal(e2))]);
+    }
+
+    var csv = "\uFEFF" + rows.map(function(r){
+      return r.map(function(c){
+        c = (c === undefined || c === null) ? "" : String(c);
+        return /[",\n]/.test(c) ? '"' + c.replace(/"/g,'""') + '"' : c;
+      }).join(",");
+    }).join("\r\n");
+
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+    a.download = "茴禧花坊薪資_" + state.y + pad(state.m) + "_" + divMeta(state.div).label + "_" + name + ".csv";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  };
+
+  /* ── 使用指引 ───────────────────────── */
+  var GUIDEKEY = "huixi:guided";
+  function openGuide(){ document.getElementById("guideMask").classList.remove("hide"); }
+  function closeGuide(){
+    document.getElementById("guideMask").classList.add("hide");
+    localSet(GUIDEKEY, "1");
+  }
+  document.getElementById("btnGuide").onclick = openGuide;
+  document.getElementById("gClose").onclick = closeGuide;
+  document.getElementById("guideMask").onclick = function(ev){ if(ev.target === this) closeGuide(); };
+  if(!localGet(GUIDEKEY)) setTimeout(openGuide, 350);
+
+  /* ── 安裝為 App ─────────────────────── */
+  var installEvent = null;
+  window.addEventListener("beforeinstallprompt", function(ev){
+    ev.preventDefault();
+    installEvent = ev;
+    document.getElementById("btnInstall").classList.remove("hide");
+  });
+  document.getElementById("btnInstall").onclick = function(){
+    if(!installEvent) return;
+    installEvent.prompt();
+    installEvent.userChoice.then(function(){
+      installEvent = null;
+      document.getElementById("btnInstall").classList.add("hide");
+    });
+  };
+  window.addEventListener("appinstalled", function(){
+    document.getElementById("btnInstall").classList.add("hide");
+  });
+  if("serviceWorker" in navigator && location.protocol.indexOf("http") === 0){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
+
+  /* ── 啟動與資料轉換 ─────────────────── */
+  function fixBook(src, fallbackType, fallbackUnit){
+    var b = blankBook(fallbackType, fallbackUnit);
+    if(src) for(var p in src) if(Object.prototype.hasOwnProperty.call(src,p)) b[p] = src[p];
+    if(!b.type) b.type = fallbackType;
+    if(!b.days) b.days = {};
+    return b;
+  }
+  function migrate(list){
+    return list.map(function(e){
+      var out = blank(e.name);
+      out.id = e.id || out.id;
+      out.role = e.role || "";
+      out.grp = e.grp || "";
+      if(e.books){
+        BOOKS.forEach(function(m){
+          /* 舊的「景觀設計」(land) 併入內部施作 */
+          var src = e.books[m.k] || (m.k === "internal" ? e.books.land : null);
+          out.books[m.k] = fixBook(src, m.type, m.unit);
+        });
+      }else{
+        /* v2 以前：整份資料視為一般業務 */
+        out.books.normal = fixBook(e, "hourly", 500);
+      }
+      return out;
+    });
+  }
+
+  function fixBookKey(k){
+    if(k === "land") return "internal";
+    for(var i=0;i<BOOKS.length;i++) if(BOOKS[i].k === k) return k;
+    return "normal";
+  }
+
+  function boot(raw){
+    var parsed = null;
+    if(raw){ try{ parsed = JSON.parse(raw); }catch(err){ parsed = null; } }
+
+    DIVS.forEach(function(m){ state.divs[m.k] = { staff:[], active:null, book:"normal" }; });
+
+    if(parsed && parsed.divs){
+      DIVS.forEach(function(m){
+        var src = parsed.divs[m.k] || {};
+        state.divs[m.k] = { staff:migrate(src.staff || []), active:src.active || null, book:fixBookKey(src.book) };
+      });
+      state.div = parsed.div === "scape" ? "scape" : "flower";
+      state.desc = parsed.desc !== false;
+    }else if(parsed && parsed.staff && parsed.staff.length){
+      /* v3 以前：整份資料歸入花坊 */
+      state.divs.flower = { staff:migrate(parsed.staff), active:parsed.active || null, book:fixBookKey(parsed.book) };
+      state.desc = parsed.desc !== false;
+    }
+
+    DIVS.forEach(function(m){
+      var d = state.divs[m.k];
+      if(!d.staff.length){
+        var e = blank("員工一");
+        d.staff = [e]; d.active = e.id;
+      }
+      if(d.active !== "__all__" && !d.staff.some(function(x){ return x.id === d.active; })){
+        d.active = d.staff[0].id;
+      }
+    });
+
+    var cur = state.divs[state.div];
+    state.staff = cur.staff; state.active = cur.active; state.book = cur.book;
+    drawAll();
+  }
+
+  function readChain(keys){
+    if(!keys.length) return Promise.resolve(null);
+    return store.get(keys[0]).then(function(v){
+      return v ? v : readChain(keys.slice(1));
+    }).catch(function(){ return readChain(keys.slice(1)); });
+  }
+
+  readChain([KEY].concat(OLDKEYS)).then(boot).catch(function(){ boot(null); });
+})();
+</script>
+</body>
+</html>
