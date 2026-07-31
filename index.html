@@ -90,6 +90,11 @@
   button{font-family:inherit;font-size:14px;color:var(--ink);cursor:pointer}
   .btn{background:var(--btn-bg);border:1px solid var(--line);border-radius:var(--radius);padding:7px 13px;transition:border-color .15s,background .15s}
   .btn:hover{border-color:var(--stem);background:var(--btn-hover)}
+  .btn.solid{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.solid:hover{background:var(--accent);opacity:.9}
+  .btn.big{padding:9px 18px;font-size:15px}
+  .menugrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .menugrid .btn{width:100%;padding:12px 10px;font-size:15px}
   .btn.on{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-fg)}
   .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-soft);padding:6px 8px}
   .btn.ghost:hover{color:var(--accent)}
@@ -348,7 +353,7 @@
     .masthead{gap:10px;padding-bottom:8px}
     .masthead svg{width:26px;height:32px}
     .books{flex-direction:column;max-width:none}
-    .book{flex-direction:row;justify-content:space-between;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:11px 14px}
+    .book{flex-direction:row;justify-content:space-between;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:8px 13px}
     .book:last-child{border-bottom:0}
   }
   @media (max-width:900px){
@@ -410,16 +415,8 @@
     <div class="spacer"></div>
     <div class="toolbar">
       <span class="saved" id="saved">已儲存</span>
-      <button class="btn" id="btnTheme" aria-label="切換淺色深色">自動</button>
-      <button class="btn hide" id="btnInstall">安裝</button>
-      <button class="btn" id="btnGuide">使用指引</button>
-      <button class="btn" id="btnSet">設定</button>
-      <button class="btn" id="btnFill">批次填入</button>
-      <button class="btn" id="btnImport">批次匯入</button>
-      <button class="btn" id="btnEntry">輸入視窗</button>
-      <button class="btn" id="btnCopy">複製上月</button>
-      <button class="btn" id="btnCsv">匯出 CSV</button>
-      <button class="btn" id="btnPrint">列印</button>
+      <button class="btn solid big" id="btnEntry">＋ 輸入</button>
+      <button class="btn big" id="btnMenu" aria-label="更多功能">⋯</button>
     </div>
   </div>
 
@@ -513,6 +510,25 @@
   <p class="copy">版權所有 <span>&copy; 2026 CTM</span> · 保留一切權利</p>
 
  </div><!-- /body -->
+</div>
+
+<div class="mask hide" id="menuMask">
+  <div class="modal">
+    <header><span>功 能 選 單</span><button class="btn ghost" id="mClose">關閉</button></header>
+    <div class="mbody">
+      <div class="menugrid" id="menuBody">
+        <button class="btn" id="btnImport">批次匯入</button>
+        <button class="btn" id="btnFill">批次填入</button>
+        <button class="btn" id="btnCopy">複製上月</button>
+        <button class="btn" id="btnCsv">匯出 CSV</button>
+        <button class="btn" id="btnPrint">列印</button>
+        <button class="btn" id="btnSet">設定</button>
+        <button class="btn" id="btnGuide">使用指引</button>
+        <button class="btn" id="btnTheme" aria-label="切換淺色深色">自動</button>
+        <button class="btn hide" id="btnInstall">安裝到桌面</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="mask full hide" id="entryMask">
@@ -1325,7 +1341,7 @@
     var ov = isOverview();
     document.getElementById("viewStaff").classList.toggle("hide", ov);
     document.getElementById("viewOverview").classList.toggle("hide", !ov);
-    ["btnFill","btnCopy","btnDel"].forEach(function(id){
+    ["btnFill","btnCopy","btnDel","btnEntry","btnImport"].forEach(function(id){
       document.getElementById(id).classList.toggle("hide", ov);
     });
     if(ov) drawOverview();
@@ -1559,6 +1575,18 @@
     document.body.appendChild(a); a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
   };
+
+  /* ── 功能選單 ───────────────────────── */
+  function closeMenu(){ document.getElementById("menuMask").classList.add("hide"); }
+  document.getElementById("btnMenu").onclick = function(){
+    document.getElementById("menuMask").classList.remove("hide");
+  };
+  document.getElementById("mClose").onclick = closeMenu;
+  document.getElementById("menuMask").onclick = function(ev){ if(ev.target === this) closeMenu(); };
+  document.getElementById("menuBody").addEventListener("click", function(ev){
+    var b = ev.target;
+    if(b.tagName === "BUTTON" && b.id !== "btnTheme") setTimeout(closeMenu, 0);
+  });
 
   /* ── 獨立輸入視窗 ───────────────────── */
   var entryDay = 0;
