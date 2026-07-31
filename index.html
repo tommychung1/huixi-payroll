@@ -103,15 +103,16 @@
   input:focus,select:focus{border-color:var(--accent)}
   input[type=time]{font-family:var(--mono);letter-spacing:.02em}
 
-  .divs{display:flex;gap:8px;margin:10px 0 2px;flex-wrap:wrap}
-  .divi{display:flex;flex-direction:column;gap:1px;align-items:flex-start;padding:9px 22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);transition:.15s}
-  .divi .dn{font-family:var(--serif);font-size:17px;letter-spacing:.18em}
-  .divi .dv{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .topline{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0 6px}
+  .divs{display:flex;gap:6px;flex-wrap:wrap}
+  .divi{display:flex;flex-direction:column;gap:0;align-items:flex-start;padding:5px 15px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);transition:.15s}
+  .divi .dn{font-family:var(--serif);font-size:15px;letter-spacing:.14em;line-height:1.3}
+  .divi .dv{font-family:var(--mono);font-size:11px;color:var(--ink-soft);line-height:1.3}
   .divi:hover{border-color:var(--stem)}
   .divi[aria-selected="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-fg)}
   .divi[aria-selected="true"] .dv{color:var(--sel-fg);opacity:.72}
-  .monthbar{display:flex;align-items:center;gap:10px;margin:10px 0 8px;flex-wrap:wrap}
-  .month{font-family:var(--serif);font-size:20px;letter-spacing:.1em;min-width:150px;text-align:center}
+  .monthbar{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+  .month{font-family:var(--serif);font-size:17px;letter-spacing:.06em;min-width:120px;text-align:center;white-space:nowrap}
   .month em{font-style:normal;color:var(--accent)}
 
   .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
@@ -121,11 +122,11 @@
 
   /* 業務別切換 */
   .books{display:flex;gap:0;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card);max-width:680px}
-  .book{flex:1;display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:10px 16px;border:0;background:transparent;border-right:1px solid var(--line);transition:.15s}
+  .book{flex:1;display:flex;flex-direction:column;gap:1px;align-items:flex-start;padding:7px 13px;border:0;background:transparent;border-right:1px solid var(--line);transition:.15s}
   .book:last-child{border-right:0}
-  .book .bl{font-size:13px;letter-spacing:.12em;display:flex;align-items:center;gap:7px}
+  .book .bl{font-size:13px;letter-spacing:.08em;display:flex;align-items:center;gap:6px;white-space:nowrap}
   .book .bl::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--line)}
-  .book .bv{font-family:var(--mono);font-size:16px;color:var(--ink-soft)}
+  .book .bv{font-family:var(--mono);font-size:14px;color:var(--ink-soft)}
   .book[aria-selected="true"]{background:var(--bk-bg)}
   .book .bl::before{background:var(--bk-acc,var(--line))}
   .book[aria-selected="true"] .bv{color:var(--ink)}
@@ -137,6 +138,8 @@
   .card > header{padding:11px 16px;border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.24em;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:center;gap:8px}
   .card.book-card{border-top:3px solid var(--accent)}
 
+  .foldbtn{background:transparent;border:0;color:var(--ink-soft);font-size:12px;letter-spacing:.1em;padding:2px 4px;display:flex;align-items:center;gap:6px}
+  .foldbtn b{font-weight:500;color:var(--ink);letter-spacing:0;font-family:var(--mono)}
   .who{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;padding:14px 16px}
   .field{display:flex;flex-direction:column;gap:4px;min-width:0}
   .field label{font-size:11px;letter-spacing:.14em;color:var(--ink-soft)}
@@ -352,9 +355,11 @@
     .titles h1{font-size:21px}
     .masthead{gap:10px;padding-bottom:8px}
     .masthead svg{width:26px;height:32px}
-    .books{flex-direction:column;max-width:none}
-    .book{flex-direction:row;justify-content:space-between;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:8px 13px}
-    .book:last-child{border-bottom:0}
+    .books{max-width:none;overflow-x:auto}
+    .book{flex:0 0 auto;min-width:33%}
+    .book .bl .pill{display:none}
+    .tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+    .tab{flex:0 0 auto}
   }
   @media (max-width:900px){
     .grid{grid-template-columns:minmax(0,1fr)}
@@ -420,13 +425,14 @@
     </div>
   </div>
 
-  <div class="divs" id="divs" role="tablist" aria-label="部門"></div>
-
-  <div class="monthbar">
+  <div class="topline">
+   <div class="divs" id="divs" role="tablist" aria-label="部門"></div>
+   <div class="monthbar">
     <button class="btn" id="prevM" aria-label="上個月">‹</button>
     <div class="month" id="monthLabel"></div>
     <button class="btn" id="nextM" aria-label="下個月">›</button>
-    <button class="btn ghost" id="thisM">回到本月</button>
+    <button class="btn ghost" id="thisM">本月</button>
+   </div>
   </div>
 
   <div class="tabs" id="tabs" role="tablist"></div>
@@ -441,10 +447,9 @@
     <div>
       <div class="card book-card" style="margin-bottom:18px">
         <header>
-          <span>員 工 資 料</span>
-          <button class="btn ghost" id="btnDel">刪除這位員工</button>
+          <button class="foldbtn" id="whoToggle"><span id="whoCaret">▸</span> 員 工 資 料 <b id="whoBrief"></b></button>
         </header>
-        <div class="who">
+        <div class="who" id="whoBody">
           <div class="field"><label for="fName">姓名</label><input id="fName" placeholder="輸入姓名"></div>
           <div class="field" id="wrapGroup"><label for="fGroup">類別</label><select id="fGroup"></select></div>
           <div class="field" id="wrapTitle"><label for="fTitle">職稱</label><select id="fTitle"></select><div class="hintline" id="roleHint"></div></div>
@@ -464,6 +469,7 @@
           <div class="field" data-for="perjob"><label for="fUnit" id="lblUnit">預設單價（元／次）</label><input id="fUnit" class="num" type="number" min="0" step="10"></div>
           <div class="field"><label for="fBonus">特別獎金（元）</label><input id="fBonus" class="num" type="number" step="1"></div>
           <div class="field"><label for="fDeduct">其他扣款（元）</label><input id="fDeduct" class="num" type="number" step="1"></div>
+          <div class="field" style="justify-content:flex-end"><button class="btn ghost" id="btnDel" style="text-align:left;padding:6px 0">刪除這位員工</button></div>
         </div>
       </div>
 
@@ -747,7 +753,7 @@
 
   var state = { y:new Date().getFullYear(), m:new Date().getMonth()+1,
                 div:"flower", divs:{}, active:null, book:"normal", desc:true, staff:[],
-                prefs:{ fs:"m", rows:10 }, trash:[] };
+                prefs:{ fs:"m", rows:10, foldWho:true }, trash:[] };
 
   /* ── 工具 ───────────────────────────── */
   function uid(){ return "e" + Math.random().toString(36).slice(2,9); }
@@ -989,6 +995,17 @@
     for(var i=0;i<fields.length;i++){
       fields[i].classList.toggle("hide", fields[i].getAttribute("data-for") !== t);
     }
+    var brief = [];
+    if(e.role) brief.push(e.role);
+    if(t === "hourly") brief.push("時薪 " + money(num(b.rate)));
+    else if(t === "monthly") brief.push("月薪 " + money(num(b.monthly)));
+    else brief.push("單價 " + money(num(b.unit)));
+    if(num(b.bonus)) brief.push("獎金 " + money(num(b.bonus)));
+    if(num(b.deduct)) brief.push("扣款 " + money(num(b.deduct)));
+    document.getElementById("whoBrief").textContent = brief.join("・");
+    document.getElementById("whoBody").classList.toggle("hide", !!state.prefs.foldWho);
+    document.getElementById("whoCaret").textContent = state.prefs.foldWho ? "▸" : "▾";
+
     document.getElementById("tblTitle").textContent =
       (t === "perjob" ? "每 日 件 數" : "每 日 出 勤") + " · " + m.label;
     document.getElementById("btnFill").textContent = t === "perjob" ? "批次填入件數" : "批次填入班表";
@@ -1376,6 +1393,11 @@
     state.desc = !state.desc;
     save(); drawTable();
     document.getElementById("tscroll").scrollTop = 0;
+  };
+
+  document.getElementById("whoToggle").onclick = function(){
+    state.prefs.foldWho = !state.prefs.foldWho;
+    save(); drawWho();
   };
 
   document.getElementById("fGroup").onchange = function(){
@@ -2302,6 +2324,7 @@
       if(parsed.prefs){
         if(parsed.prefs.fs) state.prefs.fs = parsed.prefs.fs;
         if(typeof parsed.prefs.rows === "number") state.prefs.rows = parsed.prefs.rows;
+        if(typeof parsed.prefs.foldWho === "boolean") state.prefs.foldWho = parsed.prefs.foldWho;
       }
       if(parsed.trash) state.trash = prune(parsed.trash);
     }else if(parsed && parsed.staff && parsed.staff.length){
