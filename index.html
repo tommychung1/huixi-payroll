@@ -211,6 +211,20 @@
   .mrow{display:flex;gap:8px;flex-wrap:wrap}
   .seg{display:flex;flex-direction:column;gap:6px}
   .seg > label{font-size:11px;letter-spacing:.14em;color:var(--ink-soft)}
+  textarea{
+    font-family:var(--mono);font-size:15px;line-height:1.6;color:var(--ink);
+    background:var(--input-bg);border:1px solid var(--line);border-radius:8px;
+    padding:10px;width:100%;min-height:150px;resize:vertical;
+  }
+  textarea:focus{border-color:var(--accent)}
+  .sample{font-family:var(--mono);font-size:12px;line-height:1.8;background:var(--hair);border-radius:8px;padding:9px 11px;color:var(--ink-soft);white-space:pre-wrap}
+  .preview{border:1px solid var(--line);border-radius:8px;max-height:170px;overflow:auto;font-size:12px}
+  .preview .p{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;border-bottom:1px solid var(--hair);font-family:var(--mono)}
+  .preview .p:last-child{border-bottom:0}
+  .preview .p.bad{color:var(--acc-normal)}
+  .preview .empty{padding:12px;text-align:center;color:var(--ink-soft)}
+  .check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft)}
+  .check input{width:17px;height:17px;accent-color:var(--accent)}
   .recover{border:1px solid var(--line);border-radius:8px;max-height:190px;overflow:auto}
   .recover .item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid var(--hair);font-size:13px}
   .recover .item:last-child{border-bottom:0}
@@ -371,6 +385,7 @@
       <button class="btn" id="btnGuide">使用指引</button>
       <button class="btn" id="btnSet">設定</button>
       <button class="btn" id="btnFill">批次填入</button>
+      <button class="btn" id="btnImport">批次匯入</button>
       <button class="btn" id="btnCopy">複製上月</button>
       <button class="btn" id="btnCsv">匯出 CSV</button>
       <button class="btn" id="btnPrint">列印</button>
@@ -469,6 +484,30 @@
  </div><!-- /body -->
 </div>
 
+<div class="mask hide" id="impMask">
+  <div class="modal">
+    <header><span>批 次 匯 入</span><button class="btn ghost" id="iClose">關閉</button></header>
+    <div class="mbody">
+      <div class="status" id="iTarget"></div>
+      <div class="mrow">
+        <label class="btn" for="iFile">選擇 Excel／CSV 檔</label>
+        <input id="iFile" type="file" accept=".xlsx,.xlsm,.xls,.csv,.tsv,.txt" class="hide">
+        <span class="status" id="iFileName"></span>
+      </div>
+      <div class="sample" id="iSample"></div>
+      <textarea id="iText" placeholder="把整理好的資料貼在這裡" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+      <label class="check"><input type="checkbox" id="iOver"> 覆蓋已經填過的日子</label>
+      <div class="preview" id="iPreview"></div>
+      <div class="mrow">
+        <button class="btn" id="iRun">匯入</button>
+        <button class="btn" id="iPrompt">複製 AI 整理指令</button>
+        <button class="btn ghost" id="iClear">清空</button>
+      </div>
+      <div class="status">資料很亂沒關係：按「複製 AI 整理指令」，到任何 AI 對話貼上指令＋你的原始紀錄（LINE 對話、手寫拍照轉的文字都行），它會回一份可直接貼回來的格式。</div>
+    </div>
+  </div>
+</div>
+
 <div class="mask hide" id="setMask">
   <div class="modal">
     <header><span>設 定</span><button class="btn ghost" id="sClose">完成</button></header>
@@ -534,6 +573,15 @@
         <li><b>iPhone</b>：用 Safari 開啟 → 分享鈕 → 加入主畫面。</li>
         <li><b>Android</b>：Chrome 選單 → 安裝應用程式，或按工具列的「安裝」。</li>
         <li>裝好後可離線開啟，之前輸入的資料仍在。</li>
+      </ul>
+
+      <h3>批次匯入</h3>
+      <ul>
+        <li>「批次匯入」可一次貼上整個月：每行一筆，例如 <b>7/1 10:00-19:00 60</b>，請假寫 <b>7/5 請假</b>。</li>
+        <li>計次制的格式是 <b>7/1 案場名稱 1 3000</b>，單價省略就套用預設金額。</li>
+        <li>貼上後下方會即時顯示解析結果，看不懂的行會標紅，確認沒問題再按匯入。</li>
+        <li>已經在用 Excel 的話，直接按「選擇 Excel／CSV 檔」讀進來，會自動找出日期與上下班欄位。</li>
+        <li>紀錄很亂時，按「複製 AI 整理指令」，拿去給任何 AI 連同原始紀錄一起貼，它會回可直接匯入的格式。</li>
       </ul>
 
       <h3>設定與復原</h3>
@@ -1453,6 +1501,336 @@
     a.download = "茴禧花坊薪資_" + state.y + pad(state.m) + "_" + divMeta(state.div).label + "_" + name + ".csv";
     document.body.appendChild(a); a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  };
+
+  /* ── 批次匯入 ───────────────────────── */
+  function loadSheetJS(){
+    if(window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise(function(res, rej){
+      var sc = document.createElement("script");
+      sc.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+      sc.onload = function(){ window.XLSX ? res(window.XLSX) : rej(new Error("載入失敗")); };
+      sc.onerror = function(){ rej(new Error("需要連上網路才能讀 Excel，離線時請改用 CSV")); };
+      document.head.appendChild(sc);
+    });
+  }
+
+  function csvGrid(text){
+    var rows = [], row = [], cell = "", q = false, i, c;
+    text = String(text).replace(/^\uFEFF/, "");
+    if(text.indexOf("\t") > -1 && text.indexOf(",") < 0){
+      return text.split(/\r?\n/).map(function(l){ return l.split("\t"); });
+    }
+    for(i=0; i<text.length; i++){
+      c = text.charAt(i);
+      if(q){
+        if(c === '"'){ if(text.charAt(i+1) === '"'){ cell += '"'; i++; } else q = false; }
+        else cell += c;
+      }else if(c === '"'){ q = true; }
+      else if(c === ","){ row.push(cell); cell = ""; }
+      else if(c === "\n"){ row.push(cell); rows.push(row); row = []; cell = ""; }
+      else if(c !== "\r"){ cell += c; }
+    }
+    row.push(cell); rows.push(row);
+    return rows;
+  }
+
+  function normTime(v){
+    var s = String(v == null ? "" : v).trim();
+    if(!s) return "";
+    var m = s.match(/(\d{1,2})[:：](\d{2})/);
+    if(m) return pad(+m[1]) + ":" + m[2];
+    m = s.match(/^(\d{1,2})(\d{2})$/);
+    if(m) return pad(+m[1]) + ":" + m[2];
+    var f = parseFloat(s);
+    if(!isNaN(f) && f > 0 && f < 1){
+      var mins = Math.round(f * 1440);
+      return pad(Math.floor(mins/60)) + ":" + pad(mins % 60);
+    }
+    return "";
+  }
+
+  function normDate(v){
+    var s = String(v == null ? "" : v).trim();
+    if(!s) return null;
+    var m;
+    if((m = s.match(/(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/))) return { y:+m[1], m:+m[2], d:+m[3] };
+    if((m = s.match(/(\d{1,2})[月\/\-.](\d{1,2})/))) return { y:state.y, m:+m[1], d:+m[2] };
+    if((m = s.match(/^(\d{1,2})日?$/))) return { y:state.y, m:state.m, d:+m[1] };
+    return null;
+  }
+
+  function gridToLines(grid){
+    var head = -1, col = {}, r, i;
+    for(r=0; r<Math.min(grid.length, 15); r++){
+      var row = grid[r] || [], m = {};
+      for(i=0; i<row.length; i++){
+        var v = String(row[i] == null ? "" : row[i]).replace(/\s/g, "");
+        if(!v) continue;
+        if(/日期|date/i.test(v) && m.date === undefined) m.date = i;
+        else if(/上班|進場|start/i.test(v) && m.in === undefined) m.in = i;
+        else if(/下班|退場|end/i.test(v) && m.out === undefined) m.out = i;
+        else if(/休息/.test(v) && m.brk === undefined) m.brk = i;
+        else if(/請假|假別/.test(v) && m.leave === undefined) m.leave = i;
+        else if(/項目|案場|品項|名稱/.test(v) && m.item === undefined) m.item = i;
+        else if(/件數|次數|數量|qty/i.test(v) && m.qty === undefined) m.qty = i;
+        else if(/單價|價格|price/i.test(v) && m.price === undefined) m.price = i;
+      }
+      if(m.date !== undefined && (m.in !== undefined || m.qty !== undefined || m.item !== undefined)){
+        head = r; col = m; break;
+      }
+    }
+    if(head < 0){ head = -1; col = { date:0, in:1, out:2, brk:3 }; }
+
+    var lines = [], months = {}, used = 0;
+    for(r = head + 1; r < grid.length; r++){
+      var g = grid[r] || [];
+      function at(k){ return col[k] === undefined ? "" : g[col[k]]; }
+      var dt = normDate(at("date"));
+      if(!dt) continue;
+      months[dt.y + "-" + dt.m] = true;
+
+      var leaveTxt = String(at("leave") || "");
+      var line = dt.m + "/" + dt.d;
+
+      if(col.qty !== undefined || col.item !== undefined){
+        var qty = parseFloat(at("qty"));
+        var item = String(at("item") || "").replace(/\s+/g, "-");
+        if(isNaN(qty) || qty <= 0) continue;
+        var price = parseFloat(at("price"));
+        lines.push(line + " " + (item || "項目") + " " + qty + (isNaN(price) ? "" : " " + price));
+        used++;
+      }else{
+        if(/請假|假|off/i.test(leaveTxt) && leaveTxt !== ""){ lines.push(line + " 請假"); used++; continue; }
+        var a = normTime(at("in")), b2 = normTime(at("out"));
+        if(!a || !b2 || (a === "00:00" && b2 === "00:00")) continue;
+        var brk = parseInt(at("brk"), 10);
+        lines.push(line + " " + a + "-" + b2 + (brk ? " " + brk : ""));
+        used++;
+      }
+    }
+    return { lines:lines, months:Object.keys(months), used:used };
+  }
+
+  function applyGrid(grid, name){
+    var r = gridToLines(grid);
+    if(!r.used){
+      alert("在「" + name + "」裡找不到可辨識的出勤資料。\n請確認表格有「日期」「上班時間」「下班時間」等欄位。");
+      return;
+    }
+    if(r.months.length === 1){
+      var mm = r.months[0].split("-");
+      var fy = +mm[0], fm = +mm[1];
+      if(fy !== state.y || fm !== state.m){
+        if(confirm("檔案裡是 " + fy + " 年 " + fm + " 月的資料，目前畫面停在 " + state.y + " 年 " + state.m + " 月。\n要切換到 " + fm + " 月再匯入嗎？")){
+          state.y = fy; state.m = fm; drawAll();
+        }else{
+          r.lines = r.lines.map(function(l){ return l.replace(/^\d{1,2}\//, state.m + "/"); });
+        }
+      }
+    }
+    impSample();
+    document.getElementById("iText").value = r.lines.join("\n");
+    impRefresh();
+  }
+
+  document.getElementById("iFile").onchange = function(){
+    var f = this.files && this.files[0];
+    if(!f) return;
+    var label = document.getElementById("iFileName");
+    label.textContent = "讀取中…";
+    var isCsv = /\.(csv|tsv|txt)$/i.test(f.name);
+    var reader = new FileReader();
+
+    reader.onerror = function(){ label.textContent = "讀不到這個檔案"; };
+    reader.onload = function(){
+      try{
+        if(isCsv){
+          applyGrid(csvGrid(reader.result), f.name);
+          label.textContent = f.name;
+        }else{
+          loadSheetJS().then(function(XLSX){
+            var wb = XLSX.read(new Uint8Array(reader.result), { type:"array", cellDates:false });
+            var best = null, bestLen = -1;
+            wb.SheetNames.forEach(function(n){
+              var g = XLSX.utils.sheet_to_json(wb.Sheets[n], { header:1, raw:false, defval:"" });
+              if(g.length > bestLen){ bestLen = g.length; best = g; }
+            });
+            applyGrid(best || [], f.name);
+            label.textContent = f.name + (wb.SheetNames.length > 1 ? "（取最長的工作表）" : "");
+          }).catch(function(e){
+            label.textContent = e.message || "Excel 讀取失敗";
+          });
+        }
+      }catch(e){
+        label.textContent = "解析失敗，請改存成 CSV 再試";
+      }
+    };
+    if(isCsv) reader.readAsText(f, "utf-8");
+    else reader.readAsArrayBuffer(f);
+    this.value = "";
+  };
+
+  function impClock(){ var t = bk(current()).type; return t !== "perjob"; }
+
+  function parseDay(tok){
+    var m;
+    if((m = tok.match(/^(\d{4})[\/\-年.](\d{1,2})[\/\-月.](\d{1,2})/)))
+      return (+m[1] === state.y && +m[2] === state.m) ? +m[3] : null;
+    if((m = tok.match(/^(\d{1,2})[\/\-月.](\d{1,2})/)))
+      return (+m[1] === state.m) ? +m[2] : null;
+    if((m = tok.match(/^(\d{1,2})日?$/))) return +m[1];
+    return null;
+  }
+
+  function parseImport(text){
+    var out = [], bad = [], n = daysIn(state.y, state.m), clock = impClock();
+    String(text || "").split(/\r?\n/).forEach(function(raw){
+      var line = raw.replace(/[，、]/g, " ").replace(/\t/g, " ").trim();
+      if(!line) return;
+      if(/^(日期|date)/i.test(line)) return;
+
+      var parts = line.split(/[\s,]+/);
+      var d = parseDay(parts[0]);
+      if(!d || d < 1 || d > n){ bad.push(raw.trim()); return; }
+      var rest = parts.slice(1).join(" ");
+
+      if(clock){
+        if(/請假|休假|off/i.test(rest)){ out.push({ d:d, leave:true }); return; }
+        var t = rest.match(/(\d{1,2})[:：]?(\d{2})\s*[-~～至到]\s*(\d{1,2})[:：]?(\d{2})/);
+        if(!t){ bad.push(raw.trim()); return; }
+        var brk = 0;
+        var bm = rest.match(/休(?:息)?\s*(\d{1,3})/);
+        if(bm) brk = +bm[1];
+        else{
+          var tail = rest.replace(t[0], " ").match(/(\d{1,3})\s*(?:分|min)?\s*$/);
+          if(tail) brk = +tail[1];
+        }
+        out.push({
+          d:d,
+          in:pad(+t[1]) + ":" + t[2],
+          out:pad(+t[3]) + ":" + t[4],
+          brk:brk
+        });
+      }else{
+        var toks = rest.split(/\s+/).filter(function(x){ return x; });
+        var nums = [];
+        while(toks.length && /^\d+(\.\d+)?$/.test(toks[toks.length-1])){
+          nums.unshift(+toks.pop());
+          if(nums.length === 2) break;
+        }
+        if(!nums.length){ bad.push(raw.trim()); return; }
+        out.push({
+          d:d,
+          item:toks.join(" "),
+          qty:nums.length === 2 ? nums[0] : nums[0],
+          price:nums.length === 2 ? nums[1] : ""
+        });
+      }
+    });
+    return { rows:out, bad:bad };
+  }
+
+  function impRefresh(){
+    var r = parseImport(document.getElementById("iText").value);
+    var box = document.getElementById("iPreview");
+    if(!r.rows.length && !r.bad.length){
+      box.innerHTML = '<div class="empty">貼上資料後這裡會顯示解析結果</div>';
+      return r;
+    }
+    var html = r.rows.slice(0, 60).map(function(x){
+      var right = x.leave ? "請假"
+        : (impClock() ? (x.in + "–" + x.out + (x.brk ? "　休" + x.brk : ""))
+                      : ((x.item ? x.item + "　" : "") + x.qty + " 件" + (x.price === "" ? "" : " × " + x.price)));
+      return '<div class="p"><span>' + state.m + "/" + x.d + "</span><span>" + right + "</span></div>";
+    }).join("");
+    html += r.bad.slice(0, 20).map(function(l){
+      return '<div class="p bad"><span>看不懂</span><span>' + l.replace(/[<>&]/g, "") + "</span></div>";
+    }).join("");
+    box.innerHTML = html;
+    return r;
+  }
+
+  function impSample(){
+    var m = bookMeta(state.book);
+    document.getElementById("iTarget").innerHTML =
+      "匯入到 <b>" + divMeta(state.div).label + " · " + (current().name || "未命名") + " · " + m.label
+      + "</b> 的 " + state.y + " 年 " + state.m + " 月。切換月份或業務別會匯到不同地方。";
+    document.getElementById("iSample").textContent = impClock()
+      ? "每行一筆，格式：日期 上班-下班 休息分鐘\n" + state.m + "/1 10:00-19:00 60\n" + state.m + "/2 1000-1900\n" + state.m + "/3 請假"
+      : "每行一筆，格式：日期 項目 件數 單價\n" + state.m + "/1 中山路案場 1 3000\n" + state.m + "/2 支援門市 2\n（單價省略就套用預設金額）";
+  }
+
+  document.getElementById("btnImport").onclick = function(){
+    impSample(); impRefresh();
+    document.getElementById("impMask").classList.remove("hide");
+  };
+  document.getElementById("iClose").onclick = function(){ document.getElementById("impMask").classList.add("hide"); };
+  document.getElementById("impMask").onclick = function(ev){ if(ev.target === this) this.classList.add("hide"); };
+  document.getElementById("iText").oninput = impRefresh;
+  document.getElementById("iClear").onclick = function(){
+    document.getElementById("iText").value = ""; impRefresh();
+  };
+
+  document.getElementById("iRun").onclick = function(){
+    var r = impRefresh();
+    if(!r.rows.length){ alert("沒有可匯入的資料。"); return; }
+    var over = document.getElementById("iOver").checked;
+    var b = bk(current()), added = 0, skipped = 0;
+    r.rows.forEach(function(x){
+      var k = key(state.y, state.m, x.d), cur = b.days[k];
+      var filled = cur && (cur.in || cur.out || cur.qty || cur.leave);
+      if(filled && !over){ skipped++; return; }
+      b.days[k] = x.leave ? { leave:true }
+        : (impClock() ? { in:x.in, out:x.out, brk:x.brk || 0 }
+                      : { item:x.item, qty:x.qty, price:x.price });
+      added++;
+    });
+    save(); drawTable(); drawPayout(); drawBooks();
+    document.getElementById("impMask").classList.add("hide");
+    alert("已匯入 " + added + " 筆" + (skipped ? ("，略過 " + skipped + " 天已填的資料") : "")
+        + (r.bad.length ? ("，" + r.bad.length + " 行看不懂") : "") + "。");
+  };
+
+  document.getElementById("iPrompt").onclick = function(){
+    var m = bookMeta(state.book), btn = this;
+    var text = impClock()
+      ? "請把我的出勤紀錄整理成純文字，每行一筆，格式固定為：\n" +
+        "日期 上班時間-下班時間 休息分鐘\n\n" +
+        "規則：\n" +
+        "1. 日期只寫「月/日」，例如 " + state.m + "/1。\n" +
+        "2. 時間用 24 小時制 HH:MM，中間用半形減號連接，例如 10:00-19:00。\n" +
+        "3. 休息分鐘沒有就省略；跨夜班照原樣寫，例如 22:00-06:00。\n" +
+        "4. 請假的日子寫成「" + state.m + "/5 請假」。\n" +
+        "5. 只輸出資料行，不要標題、編號、說明或程式碼框。\n" +
+        "6. 只保留 " + state.y + " 年 " + state.m + " 月的資料，依日期由小到大排序。\n\n" +
+        "我的原始紀錄如下：\n"
+      : "請把我的接案紀錄整理成純文字，每行一筆，格式固定為：\n" +
+        "日期 項目名稱 件數 單價\n\n" +
+        "規則：\n" +
+        "1. 日期只寫「月/日」，例如 " + state.m + "/1。\n" +
+        "2. 項目名稱不要有空格，可用「-」連接，例如 中山路案場。\n" +
+        "3. 件數用阿拉伯數字；單價不確定就整個省略。\n" +
+        "4. 只輸出資料行，不要標題、編號、說明或程式碼框。\n" +
+        "5. 只保留 " + state.y + " 年 " + state.m + " 月的資料，依日期由小到大排序。\n\n" +
+        "我的原始紀錄如下：\n";
+
+    function done(ok){
+      btn.textContent = ok ? "已複製，去貼給 AI" : "複製失敗，請長按上方範例";
+      setTimeout(function(){ btn.textContent = "複製 AI 整理指令"; }, 2200);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ done(true); }).catch(function(){ fallback(); });
+    }else fallback();
+
+    function fallback(){
+      var ta = document.getElementById("iText");
+      ta.value = text;
+      ta.focus(); ta.setSelectionRange(0, text.length);
+      var ok = false;
+      try{ ok = document.execCommand("copy"); }catch(e){}
+      done(ok);
+    }
   };
 
   /* ── 設定・回收與備份 ───────────────── */
