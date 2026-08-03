@@ -1,6 +1,11 @@
-/* 茴禧花坊薪資表 · Service Worker
+/*!
+ * 茴禧花坊薪資表 · Service Worker
+ * 版權所有 © 2026 CTM. All rights reserved.
+ * 未經授權不得重製、散布或作商業使用。
+ */
+/* Service Worker
    改版時把 VERSION 加一，使用者下次開啟就會拿到新版 */
-var VERSION = "huixi-v1";
+var VERSION = "huixi-v4";
 var ASSETS = [
   "./",
   "./index.html",

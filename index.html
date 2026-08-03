@@ -469,9 +469,25 @@
           </div>
           <div class="field" data-for="hourly"><label for="fRate">時薪（元）</label><input id="fRate" class="num" type="number" min="0" step="1"></div>
           <div class="field" data-for="daily"><label for="fDayPay">日薪（元）</label><input id="fDayPay" class="num" type="number" min="0" step="100"></div>
-          <div class="field" data-for="daily"><label for="fStdH">標準工時（小時）</label><input id="fStdH" class="num" type="number" min="1" step="0.5"></div>
-          <div class="field" data-for="daily"><label for="fOtRate">加班倍率</label><input id="fOtRate" class="num" type="number" min="1" step="0.01"></div>
-          <div class="field" data-for="daily">
+          <div class="field" data-for="hourly monthly">
+            <label for="fOtOn">加班費</label>
+            <select id="fOtOn">
+              <option value="0">不計加班</option>
+              <option value="1">超過標準工時計加班</option>
+            </select>
+          </div>
+          <div class="field ot" data-for="daily hourly monthly"><label for="fStdH">標準工時（小時／日）</label><input id="fStdH" class="num" type="number" min="1" step="0.5"></div>
+          <div class="field ot" data-for="monthly">
+            <label for="fOtBase">加班時薪基準</label>
+            <select id="fOtBase">
+              <option value="240">月薪 ÷ 240</option>
+              <option value="days">月薪 ÷（應出勤天數 × 標準工時）</option>
+            </select>
+          </div>
+          <div class="field ot" data-for="daily hourly monthly"><label for="fOtSplitH">前段時數（0＝不分段）</label><input id="fOtSplitH" class="num" type="number" min="0" step="0.5"></div>
+          <div class="field ot" data-for="daily hourly monthly"><label for="fOtRate">前段倍率</label><input id="fOtRate" class="num" type="number" min="1" step="0.01"></div>
+          <div class="field ot" data-for="daily hourly monthly"><label for="fOtRate2">後段倍率</label><input id="fOtRate2" class="num" type="number" min="1" step="0.01"></div>
+          <div class="field ot" data-for="daily hourly monthly">
             <label for="fOtUnit">加班計算單位</label>
             <select id="fOtUnit">
               <option value="0">實際分鐘</option>
@@ -614,6 +630,16 @@
       </div>
 
       <div class="seg">
+        <label>整份備份檔</label>
+        <div class="mrow">
+          <button class="btn" id="bkExport">匯出備份檔</button>
+          <label class="btn" for="bkFile">讀取備份檔</label>
+          <input id="bkFile" type="file" accept=".json,application/json" class="hide">
+        </div>
+        <div class="status" id="bkNote">把所有部門、員工、每日紀錄存成一個檔案。換手機、重灌、清除瀏覽器資料前先匯出一份，之後讀回來就完全復原。</div>
+      </div>
+
+      <div class="seg">
         <label>刪除的員工（保留 30 天）</label>
         <div class="recover" id="trashList"></div>
       </div>
@@ -640,6 +666,9 @@
         <li><b>時薪制</b>：填上下班時間，薪資＝出勤總時數 × 時薪。下班時間比上班早會自動當成跨夜班。</li>
         <li><b>日薪制</b>：填日薪與標準工時（例如 5000 元／8 小時）。每個出勤日給一份日薪，超過標準工時的部分自動依「日薪 ÷ 標準工時 × 加班倍率」計加班費。</li>
         <li><b>月薪制</b>：填月薪與應出勤天數。每天有「請假」欄，勾一天扣「月薪 ÷ 應出勤天數」。</li>
+        <li><b>加班費</b>：時薪制與月薪制可自行開啟（預設不計，以免動到既有數字）；日薪制固定計算。<b>計次制不算加班</b>，因為沒有記錄工時。</li>
+        <li>加班採兩段倍率：預設前 2 小時 1.34 倍、之後 1.67 倍（勞基法平日標準）。前段時數填 0 就全部用同一個倍率。</li>
+        <li>月薪制的加班時薪基準可選「月薪 ÷ 240」（勞基法常用）或「月薪 ÷ 應出勤天數 ÷ 標準工時」。</li>
         <li><b>計次制</b>：填項目與件數。單價留空就套用預設金額，不同價位的案子可各自填單價。</li>
       </ul>
 
@@ -659,7 +688,7 @@
       </ul>
 
       <h3>備份與換機</h3>
-      <p>資料存在這台裝置的瀏覽器裡，不會上傳。每月結算後按「匯出 CSV」存一份到雲端硬碟或傳給自己，就是最省事的備份。換手機或清除瀏覽器資料時，舊資料不會跟著走，記得先匯出。</p>
+      <p>資料存在這台裝置的瀏覽器裡，不會上傳。換手機或重灌前，到「設定」按<b>匯出備份檔</b>存一份，新裝置打開後用<b>讀取備份檔</b>就整份搬過去。每月結算後另外<b>匯出 CSV</b>留存，是給人看與報稅用的紙本紀錄。</p>
 
       <h3>裝到手機桌面</h3>
       <ul>
@@ -688,8 +717,10 @@
       <h3>設定與復原</h3>
       <ul>
         <li>「設定」可調整<b>顯示大小</b>（小／中／大／特大）與列表一次顯示幾筆。</li>
-        <li>刪除的員工會進回收區，<b>30 天內</b>可還原。</li>
-        <li>每天第一次存檔會自動留一份備份，同樣保留 30 天，可挑日期整份還原。</li>
+        <li><b>整份備份檔</b>：按「匯出備份檔」會下載一個 .json，包含所有部門、員工與每日紀錄。換手機、重灌或清除瀏覽器資料前務必先匯出，之後用「讀取備份檔」就完全復原。</li>
+        <li><b>刪除的員工</b>：誤刪不用怕，會進回收區，30 天內按「還原」即可救回。</li>
+        <li><b>每日備份</b>：每天第一次修改前，系統會自動留一份當天的完整快照，保留 30 天，可挑日期整份還原。還原前會先備份現況，所以還原錯了還能再還原回去。</li>
+        <li>自動備份存在這台裝置裡，清除瀏覽器資料會一起消失；<b>真正的長期備份請用匯出備份檔或匯出 CSV</b>。</li>
       </ul>
 
       <h3>版權</h3>
@@ -808,19 +839,50 @@
   function blankBook(type, unit){
     return { type:type, rate:180, monthly:30000, workdays:0, unit:unit,
              dayPay:5000, stdH:8, otRate:1.34, otUnit:30, proRata:0,
+             otOn:0, otBase:"240", otSplitH:2, otRate2:1.67,
              bonus:0, deduct:0, days:{} };
+  }
+
+  /* 這本帳是否計加班：日薪制固定計，時薪／月薪由使用者開啟 */
+  function otEnabled(book){
+    if(book.type === "perjob") return false;
+    if(book.type === "daily") return true;
+    return !!num(book.otOn);
+  }
+  /* 超過標準工時的分鐘數，依設定的單位捨去 */
+  function otMinutes(book, mins){
+    var stdMin = Math.round((num(book.stdH) || 8) * 60);
+    var unit = parseInt(book.otUnit, 10);
+    if(isNaN(unit)) unit = 30;
+    var ot = Math.max(0, mins - stdMin);
+    if(unit > 0) ot = Math.floor(ot / unit) * unit;
+    return ot;
+  }
+  /* 加班費：前段（預設 2 小時）與後段分別套不同倍率 */
+  function otSplit(book, otMin){
+    var head = Math.round((num(book.otSplitH) || 0) * 60);
+    if(head <= 0) return { a:otMin, b:0 };          /* 0 表示全部用同一個倍率 */
+    return { a:Math.min(otMin, head), b:Math.max(0, otMin - head) };
+  }
+
+  /* 加班費的每小時基準 */
+  function otHourly(book, y, m){
+    var std = num(book.stdH) || 8;
+    if(book.type === "daily") return std > 0 ? num(book.dayPay) / std : 0;
+    if(book.type === "hourly") return num(book.rate);
+    if(book.otBase === "days"){
+      var wd = parseInt(book.workdays, 10) || workdaysOf(y, m);
+      return (wd > 0 && std > 0) ? num(book.monthly) / (wd * std) : 0;
+    }
+    return num(book.monthly) / 240;   /* 勞基法常用：月薪 ÷ 240 */
   }
 
   /* 日薪制：算出一天的正常工資與加班分鐘 */
   function dailyParts(book, mins){
     var stdMin = Math.round((num(book.stdH) || 8) * 60);
     var pay = num(book.dayPay);
-    var unit = parseInt(book.otUnit, 10);
-    if(isNaN(unit)) unit = 30;
-    var ot = Math.max(0, mins - stdMin);
-    if(unit > 0) ot = Math.floor(ot / unit) * unit;
     var norm = (mins < stdMin && num(book.proRata)) ? (stdMin > 0 ? pay * mins / stdMin : 0) : pay;
-    return { stdMin:stdMin, norm:norm, otMin:ot };
+    return { stdMin:stdMin, norm:norm, otMin:otMinutes(book, mins) };
   }
   function blank(name){
     var books = {};
@@ -857,7 +919,9 @@
     var n = daysIn(y,m);
     var t = { type:book.type, mins:0, days:0, hrs:0, qty:0, amount:0, leaveDays:0,
               base:0, daily:0, workdays:0, wage:0, leaveCut:0,
-              normPay:0, otMins:0, otPay:0, stdH:0, hourly:0,
+              normPay:0, otMins:0, otPay:0, stdH:num(book.stdH) || 8, hourly:0,
+              ot:otEnabled(book), otRate:num(book.otRate) || 1, otRate2:num(book.otRate2) || num(book.otRate) || 1,
+              otMinsA:0, otMinsB:0, otPayA:0, otPayB:0, otSplitH:num(book.otSplitH) || 0,
               bonus:num(book.bonus), deduct:num(book.deduct), total:0, unitAvg:0, effHourly:0 };
     for(var d=1; d<=n; d++){
       var rec = book.days[key(y,m,d)];
@@ -869,29 +933,35 @@
         var v = dayMinutes(rec);
         if(v > 0){
           t.mins += v; t.days++;
-          if(t.type === "daily"){
-            var dp = dailyParts(book, v);
-            t.normPay += dp.norm;
-            t.otMins += dp.otMin;
-          }
+          if(t.type === "daily") t.normPay += dailyParts(book, v).norm;
+          if(t.ot) t.otMins += otMinutes(book, v);
         }
       }
     }
     t.hrs = t.mins / 60;
+    t.normMins = t.mins - t.otMins;
+    t.hourly = otHourly(book, y, m);
+    if(t.ot){
+      var sp = otSplit(book, t.otMins);
+      t.otMinsA = sp.a; t.otMinsB = sp.b;
+      t.otPayA = (sp.a / 60) * t.hourly * t.otRate;
+      t.otPayB = (sp.b / 60) * t.hourly * t.otRate2;
+      t.otPay = t.otPayA + t.otPayB;
+    }
+
     if(t.type === "hourly"){
-      t.wage = t.hrs * num(book.rate);
+      t.normPay = (t.normMins / 60) * num(book.rate);
+      t.wage = t.normPay + t.otPay;
     }else if(t.type === "daily"){
-      t.stdH = num(book.stdH) || 8;
       t.daily = num(book.dayPay);
-      t.hourly = t.stdH > 0 ? t.daily / t.stdH : 0;
-      t.otPay = (t.otMins / 60) * t.hourly * (num(book.otRate) || 1);
       t.wage = t.normPay + t.otPay;
     }else if(t.type === "monthly"){
       t.base = num(book.monthly);
       t.workdays = parseInt(book.workdays,10) || workdaysOf(y,m);
       t.daily = t.workdays > 0 ? t.base / t.workdays : 0;
       t.leaveCut = t.daily * t.leaveDays;
-      t.wage = t.base - t.leaveCut;
+      t.normPay = t.base - t.leaveCut;
+      t.wage = t.normPay + t.otPay;
     }else{
       t.wage = t.amount;
       t.unitAvg = t.qty > 0 ? t.amount / t.qty : 0;
@@ -1040,6 +1110,10 @@
     document.getElementById("fDayPay").value = b.dayPay;
     document.getElementById("fStdH").value = b.stdH;
     document.getElementById("fOtRate").value = b.otRate;
+    document.getElementById("fOtRate2").value = (b.otRate2 === undefined ? b.otRate : b.otRate2);
+    document.getElementById("fOtSplitH").value = (b.otSplitH === undefined ? 2 : b.otSplitH);
+    document.getElementById("fOtOn").value = String(num(b.otOn) ? 1 : 0);
+    document.getElementById("fOtBase").value = (b.otBase === "days") ? "days" : "240";
     document.getElementById("fOtUnit").value = String(isNaN(parseInt(b.otUnit,10)) ? 30 : parseInt(b.otUnit,10));
     document.getElementById("fProRata").value = String(num(b.proRata) ? 1 : 0);
     document.getElementById("fWorkdays").value = b.workdays || "";
@@ -1049,9 +1123,13 @@
     document.getElementById("fBonus").value = b.bonus;
     document.getElementById("fDeduct").value = b.deduct;
 
+    var on = otEnabled(b);
     var fields = document.querySelectorAll(".who .field[data-for]");
     for(var i=0;i<fields.length;i++){
-      fields[i].classList.toggle("hide", fields[i].getAttribute("data-for") !== t);
+      var list = fields[i].getAttribute("data-for").split(" ");
+      var show = list.indexOf(t) > -1;
+      if(show && fields[i].classList.contains("ot") && !on) show = false;
+      fields[i].classList.toggle("hide", !show);
     }
     var brief = [];
     if(e.role) brief.push(e.role);
@@ -1113,7 +1191,7 @@
         + '</td><td class="sum">—</td><td class="sum">' + money(s.amount) + '</td><td class="stem"></td></tr>'
       : '<tr><td class="lbl" colspan="' + (t === "monthly" ? 5 : 4) + '">' + m.label + ' 合 計</td><td class="sum">'
         + hm(s.mins) + '</td><td class="sum">'
-        + (t === "daily" ? (s.otMins ? "+" + hm(s.otMins) : "—") : s.mins)
+        + (otEnabled(b) ? (s.otMins ? "+" + hm(s.otMins) : "—") : s.mins)
         + '</td><td class="stem"></td></tr>';
   }
 
@@ -1132,7 +1210,7 @@
       ? '<tr><th>日期</th><th>' + m.item + '</th><th class="r">件數</th><th class="r">單價</th><th class="r">小計</th><th class="stemh"></th></tr>'
       : '<tr><th>日期</th><th>上班時間</th><th>下班時間</th><th class="r">休息（分）</th>'
         + (t === "monthly" ? '<th class="r">請假</th>' : "")
-        + '<th class="r">出勤時數</th><th class="r">' + (t === "daily" ? "加班" : "出勤分鐘")
+        + '<th class="r">出勤時數</th><th class="r">' + (otEnabled(b) ? "加班" : "出勤分鐘")
         + '</th><th class="stemh"></th></tr>';
 
     var painters = [];
@@ -1254,9 +1332,9 @@
           cell.time[1].disabled = off;
           cell.hrs.innerHTML = off ? '<span class="zero">請假</span>'
                              : (v ? hm(v) : '<span class="zero">—</span>');
-          if(t === "daily"){
-            var dp2 = v ? dailyParts(b, v) : null;
-            cell.mins.innerHTML = (dp2 && dp2.otMin) ? ("+" + hm(dp2.otMin)) : '<span class="zero">—</span>';
+          if(otEnabled(b)){
+            var ot2 = v ? otMinutes(b, v) : 0;
+            cell.mins.innerHTML = ot2 ? ("+" + hm(ot2)) : '<span class="zero">—</span>';
           }else{
             cell.mins.innerHTML = v ? v : '<span class="zero">0</span>';
           }
@@ -1308,18 +1386,20 @@
 
     if(t.type === "hourly"){
       add("出勤天數", t.days + " 天");
-      add("出勤總分鐘", t.mins);
       add("出勤總時數", t.hrs.toFixed(2));
       add("時薪", money(num(b.rate)));
-      add("工時薪資", money(t.wage));
+      if(t.ot){
+        add("正常工時", hm(t.normMins));
+        add("正常工資", money(t.normPay));
+      }else{
+        add("工時薪資", money(t.normPay));
+      }
     }else if(t.type === "daily"){
       add("出勤天數", t.days + " 天");
       add("日薪", money(t.daily));
       add("標準工時", t.stdH + " 小時");
       add("換算時薪", money(t.hourly));
       add("正常工資", money(t.normPay));
-      add("加班時數", hm(t.otMins));
-      add("加班費（×" + (num(b.otRate) || 1) + "）", money(t.otPay));
     }else if(t.type === "monthly"){
       add("月薪", money(t.base));
       add("應出勤天數", t.workdays + " 天");
@@ -1327,11 +1407,21 @@
       add("實際出勤", t.days + " 天");
       add("請假天數", t.leaveDays + " 天");
       if(t.leaveCut) add("請假扣薪", "−" + money(t.leaveCut), true);
+      if(t.ot) add("加班時薪基準", money(t.hourly));
     }else{
       add("有件數天數", t.days + " 天");
       add("總件數", t.qty);
       add("平均單價", money(t.unitAvg));
       add("計件薪資", money(t.amount));
+    }
+    if(t.ot){
+      add("加班時數", hm(t.otMins));
+      if(t.otMinsB > 0){
+        add("前 " + t.otSplitH + " 小時（×" + t.otRate + "）", "+" + money(t.otPayA));
+        add("超過部分（×" + t.otRate2 + "）", "+" + money(t.otPayB));
+      }else{
+        add("加班費（×" + t.otRate + "）", "+" + money(t.otPay));
+      }
     }
     if(t.bonus) add("特別獎金", "+" + money(t.bonus));
     if(t.deduct) add("其他扣款", "−" + money(t.deduct), true);
@@ -1352,8 +1442,8 @@
 
     var hint = {
       hourly:"工時薪資 = <code>出勤總時數 × 時薪</code>。下班早於上班時自動視為跨夜班次。",
-      daily:"每個出勤日給一份日薪；超時的部分＝<code>日薪 ÷ 標準工時 × 倍率</code>。勞基法平日加班前 2 小時常用 1.34 倍。",
-      monthly:"請假一天扣 <code>月薪 ÷ 應出勤天數</code>。應出勤天數留空時，預設為當月平日天數。",
+      daily:"每個出勤日給一份日薪；超時的部分＝<code>日薪 ÷ 標準工時 × 倍率</code>。勞基法平日前 2 小時 1.34 倍、之後 1.67 倍。",
+      monthly:"請假一天扣 <code>月薪 ÷ 應出勤天數</code>。應出勤天數留空時，預設為當月平日天數。加班費打開後＝<code>加班時薪基準 × 加班時數 × 倍率</code>。",
       perjob:"單價留空就套用預設金額，同一人接不同價位的案子也算得出來。"
     };
     document.getElementById("payHint").innerHTML = hint[t.type]
@@ -1464,12 +1554,18 @@
   bindBook("fDayPay","dayPay");
   bindBook("fStdH","stdH");
   bindBook("fOtRate","otRate");
-  [["fOtUnit","otUnit"],["fProRata","proRata"]].forEach(function(pair){
+  bindBook("fOtRate2","otRate2");
+  bindBook("fOtSplitH","otSplitH");
+  [["fOtUnit","otUnit"],["fProRata","proRata"],["fOtOn","otOn"]].forEach(function(pair){
     document.getElementById(pair[0]).onchange = function(){
       bk(current())[pair[1]] = num(this.value);
-      save(); drawTable(); drawPayout(); drawBooks();
+      save(); drawWho(); drawTable(); drawPayout(); drawBooks();
     };
   });
+  document.getElementById("fOtBase").onchange = function(){
+    bk(current()).otBase = this.value;
+    save(); drawPayout(); drawBooks();
+  };
   bindBook("fWorkdays","workdays");
   bindBook("fUnit","unit");
   bindBook("fBonus","bonus");
@@ -1658,13 +1754,22 @@
           rows.push(["合計分鐘數", t.mins], ["合計小時數", t.hrs.toFixed(2)]);
           if(t.type === "daily"){
             rows.push(["日薪", Math.round(t.daily)], ["標準工時", t.stdH],
-                      ["換算時薪", Math.round(t.hourly)], ["正常工資", Math.round(t.normPay)],
-                      ["加班分鐘", t.otMins], ["加班費", Math.round(t.otPay)]);
+                      ["換算時薪", Math.round(t.hourly)], ["正常工資", Math.round(t.normPay)]);
           }else if(t.type === "monthly"){
             rows.push(["月薪", Math.round(t.base)], ["應出勤天數", t.workdays],
                       ["請假天數", t.leaveDays], ["請假扣薪", Math.round(t.leaveCut)]);
           }else{
-            rows.push(["時薪", num(b.rate)]);
+            rows.push(["時薪", num(b.rate)], ["正常工資", Math.round(t.normPay)]);
+          }
+          if(t.ot){
+            rows.push(["加班時薪基準", Math.round(t.hourly)], ["加班分鐘", t.otMins]);
+            if(t.otMinsB > 0){
+              rows.push(["前段分鐘", t.otMinsA], ["前段倍率", t.otRate], ["前段加班費", Math.round(t.otPayA)],
+                        ["後段分鐘", t.otMinsB], ["後段倍率", t.otRate2], ["後段加班費", Math.round(t.otPayB)]);
+            }else{
+              rows.push(["加班倍率", t.otRate]);
+            }
+            rows.push(["加班費合計", Math.round(t.otPay)]);
           }
           rows.push(["薪資", Math.round(t.wage)]);
         }
@@ -2331,6 +2436,70 @@
       b.onclick = function(){ restoreSnap(parseInt(b.getAttribute("data-snap"), 10)); };
     });
   }
+
+  function bkSay(msg){ document.getElementById("bkNote").textContent = msg; }
+
+  document.getElementById("bkExport").onclick = function(){
+    stash();
+    var doc = {
+      app:"茴禧花坊薪資表", v:4, savedAt:Date.now(),
+      exportedAt:new Date().toISOString(),
+      div:state.div, desc:state.desc, prefs:state.prefs, trash:state.trash, divs:state.divs
+    };
+    var now = new Date();
+    var name = "茴禧花坊備份_" + now.getFullYear() + pad(now.getMonth()+1) + pad(now.getDate()) + ".json";
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(doc)], { type:"application/json" }));
+    a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    bkSay("已匯出 " + name + "，請存到雲端硬碟或傳給自己保管。");
+  };
+
+  document.getElementById("bkFile").onchange = function(){
+    var f = this.files && this.files[0];
+    this.value = "";
+    if(!f) return;
+    var reader = new FileReader();
+    reader.onerror = function(){ bkSay("讀不到這個檔案。"); };
+    reader.onload = function(){
+      var doc;
+      try{ doc = JSON.parse(reader.result); }catch(e){ bkSay("這不是備份檔，或檔案已損毀。"); return; }
+      if(!doc || !doc.divs){ bkSay("這個檔案裡沒有薪資資料。"); return; }
+
+      var count = 0;
+      DIVS.forEach(function(m){
+        var src = doc.divs[m.k];
+        if(src && src.staff) count += src.staff.length;
+      });
+      var when = doc.exportedAt ? doc.exportedAt.slice(0, 10) : "未知日期";
+      if(!confirm("讀入 " + when + " 的備份（共 " + count + " 位員工）？\n目前的資料會先自動備份，之後仍可從下方還原。")) return;
+
+      stash();
+      snapshot("讀入備份前", JSON.stringify({ div:state.div, divs:state.divs }));
+
+      DIVS.forEach(function(m){
+        var src = doc.divs[m.k] || { staff:[], active:null, book:"normal" };
+        state.divs[m.k] = { staff:migrate(src.staff || []), active:src.active || null, book:fixBookKey(src.book) };
+        var d = state.divs[m.k];
+        if(!d.staff.length){ var e = blank("員工一"); d.staff = [e]; d.active = e.id; }
+        if(d.active !== "__all__" && !d.staff.some(function(x){ return x.id === d.active; })) d.active = d.staff[0].id;
+      });
+      state.div = doc.div === "scape" ? "scape" : "flower";
+      if(doc.prefs){
+        if(doc.prefs.fs) state.prefs.fs = doc.prefs.fs;
+        if(typeof doc.prefs.rows === "number") state.prefs.rows = doc.prefs.rows;
+        if(typeof doc.prefs.foldWho === "boolean") state.prefs.foldWho = doc.prefs.foldWho;
+      }
+      if(doc.trash) state.trash = prune(doc.trash);
+      var cur = state.divs[state.div];
+      state.staff = cur.staff; state.active = cur.active; state.book = cur.book;
+
+      applyFs(); save(); drawAll(); drawSettings();
+      bkSay("已讀入 " + when + " 的備份，共 " + count + " 位員工。");
+    };
+    reader.readAsText(f, "utf-8");
+  };
 
   document.getElementById("btnSet").onclick = function(){
     drawSettings();
