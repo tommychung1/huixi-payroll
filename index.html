@@ -116,7 +116,7 @@
   .month em{font-style:normal;color:var(--accent)}
 
   .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
-  .tab{background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 15px;font-size:14px;transition:.15s}
+  .tab{background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 15px;font-size:14px;transition:.15s;white-space:nowrap}
   .tab:hover{border-color:var(--stem)}
   .tab.sub{border-style:dashed;font-size:13px}
   .tab[aria-selected="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-fg)}
@@ -360,7 +360,7 @@
     .book{flex:0 0 auto;min-width:33%}
     .book .bl .pill{display:none}
     .tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
-    .tab{flex:0 0 auto}
+    .tabs > *{flex:0 0 auto;white-space:nowrap}
   }
   @media (max-width:900px){
     .grid{grid-template-columns:minmax(0,1fr)}
@@ -834,7 +834,7 @@
 
   var state = { y:new Date().getFullYear(), m:new Date().getMonth()+1,
                 div:"flower", divs:{}, active:null, book:"normal", desc:true, staff:[],
-                prefs:{ fs:"m", rows:10, foldWho:true }, trash:[] };
+                prefs:{ fs:"m", rows:10, foldWho:false }, trash:[] };
 
   /* ── 工具 ───────────────────────────── */
   function uid(){ return "e" + Math.random().toString(36).slice(2,9); }
@@ -1215,7 +1215,8 @@
     if(num(b.bonus)) brief.push("獎金 " + money(num(b.bonus)));
     if(num(b.deduct)) brief.push("扣款 " + money(num(b.deduct)));
     document.getElementById("whoBrief").textContent = brief.join("・");
-    var fold = !!state.prefs.foldWho && !!e.name;   /* 還沒取名的新員工一律展開 */
+    var named = !!e.name && e.name !== "員工一";
+    var fold = !!state.prefs.foldWho && named;   /* 還沒取名的新員工一律展開 */
     document.getElementById("whoBody").classList.toggle("hide", fold);
     document.getElementById("whoCaret").textContent = fold ? "▸" : "▾";
 
@@ -1235,7 +1236,8 @@
     wrapG.classList.remove("hide"); wrapT.classList.remove("hide"); wrapR.classList.add("hide");
 
     var gsel = document.getElementById("fGroup"), tsel = document.getElementById("fTitle");
-    var g = e.grp || tree[0].g;
+    if(!e.grp) e.grp = tree[0].g;          /* 舊資料或新員工補上類別，排序與分組才正確 */
+    var g = e.grp;
     gsel.innerHTML = tree.map(function(x){
       return '<option value="' + x.g + '"' + (x.g === g ? " selected" : "") + ">" + x.g + "</option>";
     }).join("");
