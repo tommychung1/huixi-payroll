@@ -231,7 +231,8 @@
   .sfoot{flex:0 0 auto;border-top:1px solid var(--line);background:var(--card);padding:12px 16px;display:flex;gap:8px;align-items:center}
   .sfoot .grow{flex:1}
   .daynav{display:flex;align-items:center;justify-content:space-between;gap:10px}
-  .daynav .dtitle{font-family:var(--serif);font-size:23px;letter-spacing:.08em}
+  .daynav .dtitle{font-family:var(--serif);font-size:23px;letter-spacing:.08em;display:flex;align-items:center;gap:10px}
+  .dpick{font-family:var(--mono);font-size:19px;padding:8px 10px;border-radius:10px;letter-spacing:0}
   .daynav .dtitle em{font-style:normal;color:var(--accent);margin-left:8px;font-size:15px;letter-spacing:.2em}
   .bigfield{display:flex;flex-direction:column;gap:6px}
   .bigfield > label{font-size:11px;letter-spacing:.18em;color:var(--ink-soft)}
@@ -518,7 +519,7 @@
       <div class="card book-card">
         <header>
           <span id="tblTitle">每 日 出 勤</span>
-          <span class="listnote"><span id="dayCount"></span><button class="btn ghost" id="btnSort" style="padding:2px 6px">新 → 舊</button></span>
+          <span class="listnote"><span id="dayCount"></span><button class="btn ghost" id="btnOnly" style="padding:2px 6px">整月</button><button class="btn ghost" id="btnSort" style="padding:2px 6px">新 → 舊</button></span>
         </header>
         <div class="scroller rowcap" id="tscroll">
           <table>
@@ -648,6 +649,12 @@
       </div>
 
       <div class="seg">
+        <label>匯出 CSV</label>
+        <label class="check"><input type="checkbox" id="fullExp"> 包含沒有輸入的日子與未使用的業務別</label>
+        <div class="status">預設只匯出實際有填的資料，檔案短很多。需要整月 31 天的空白表格（例如要印出來給人簽名）再打勾。</div>
+      </div>
+
+      <div class="seg">
         <label>部門名稱</label>
         <div class="mrow" id="divNames"></div>
         <div class="status">這個名稱會用在頁面標題、匯出檔名與 CSV 抬頭。預設是茴禧花坊與三合院景觀，留空即恢復預設。</div>
@@ -707,7 +714,8 @@
       <h3>每天怎麼填</h3>
       <ul>
         <li>休息時間填分鐘數，會從當日出勤扣掉。</li>
-        <li>列表預設顯示最新 10 筆，往下捲可看整個月；右上角可切換新舊排序。</li>
+        <li>列表預設<b>只列出有資料的日子</b>加上今天，不會被一整排空白日期洗版；右上角按「整月」可切回 31 天完整檢視。</li>
+        <li>右上角另可切換新舊排序，一次顯示幾筆在設定裡調。</li>
         <li><b>批次填入</b>：把固定班表或固定件數一次填進空白日。</li>
         <li><b>複製上月</b>：把上個月同一本帳的紀錄搬過來，已填的日子不會被覆蓋。</li>
       </ul>
@@ -717,6 +725,7 @@
         <li>右側面板由上而下是明細、三本帳小計、實發總額。</li>
         <li><b>全員總覽</b>依類別分組，可看每組人事成本與全店合計。</li>
         <li><b>匯出 CSV</b>用 Excel 開不會亂碼；<b>列印</b>會自動轉成白底並展開整月。</li>
+        <li>匯出的 CSV 預設<b>只含實際有填的日子</b>，沒用到的業務別不會出現。要整月空白表格請到設定打勾。</li>
         <li>iPhone 按匯出時會跳出<b>分享選單</b>，選「儲存到檔案」存進手機，或直接傳給自己。若裝置擋住下載，會改成顯示內容讓你複製。</li>
       </ul>
 
@@ -733,7 +742,7 @@
       <h3>輸入視窗</h3>
       <ul>
         <li>按工具列的「輸入視窗」，或直接點表格裡的日期，會開一個整頁的輸入畫面。</li>
-        <li>欄位放大、一次只填一天，下方用「前一天／後一天」連續輸入，適合單手在店裡邊做邊記。</li>
+        <li>欄位放大、一次只填一天。上方日期可點開日曆直接跳到任何一天（跨月也行），不必一天一天翻；下方「前一天／後一天」則適合連續補登。</li>
         <li>會列出你這個月最常用的班別，點一下直接套用。</li>
         <li>按「完成」回到主畫面，資料即時反映在表格與結算。</li>
       </ul>
@@ -842,7 +851,7 @@
 
   var state = { y:new Date().getFullYear(), m:new Date().getMonth()+1,
                 div:"flower", divs:{}, active:null, book:"normal", desc:true, staff:[],
-                prefs:{ fs:"m", rows:10, foldWho:false }, trash:[] };
+                prefs:{ fs:"m", rows:10, foldWho:false, fullExp:false, onlyUsed:true }, trash:[] };
 
   /* ── 工具 ───────────────────────────── */
   function uid(){ return "e" + Math.random().toString(36).slice(2,9); }
@@ -1308,7 +1317,18 @@
 
     var painters = [];
     var order = [];
+    var nowD = new Date();
+    var todayNum = (nowD.getFullYear() === state.y && nowD.getMonth()+1 === state.m) ? nowD.getDate() : 0;
     for(i=1; i<=n; i++) order.push(i);
+
+    if(state.prefs.onlyUsed){
+      order = order.filter(function(d){
+        var r = b.days[key(state.y, state.m, d)];
+        if(d === todayNum) return true;
+        return !!(r && (r.in || r.out || r.leave || num(r.qty) > 0));
+      });
+      if(!order.length) order = [todayNum || 1];
+    }
     if(state.desc) order.reverse();
 
     body.innerHTML = "";
@@ -1460,7 +1480,9 @@
     painters.forEach(function(f){ f(1); });
     repaintRows();
 
-    document.getElementById("dayCount").textContent = n + " 天";
+    document.getElementById("dayCount").textContent =
+      state.prefs.onlyUsed ? (body.rows.length + " / " + n + " 天") : (n + " 天");
+    document.getElementById("btnOnly").textContent = state.prefs.onlyUsed ? "整月" : "只看有資料";
     document.getElementById("btnSort").textContent = state.desc ? "新 → 舊" : "舊 → 新";
 
     sc.style.maxHeight = "";
@@ -1696,6 +1718,12 @@
   bindBook("fBonus","bonus");
   bindBook("fDeduct","deduct");
 
+  document.getElementById("btnOnly").onclick = function(){
+    state.prefs.onlyUsed = !state.prefs.onlyUsed;
+    save(); drawTable();
+    document.getElementById("tscroll").scrollTop = 0;
+  };
+
   document.getElementById("btnSort").onclick = function(){
     state.desc = !state.desc;
     save(); drawTable();
@@ -1868,13 +1896,18 @@
       rows.push(["姓名", e2.name, "身分", lead2 ? "協力於 " + lead2 : "獨立員工",
                  "類別", e2.grp || "", "職稱", e2.role]);
 
+      var full = !!state.prefs.fullExp;
+      var shown = 0;
       BOOKS.forEach(function(m){
         var b = e2.books[m.k], t = totals(b);
+        if(!full && !used(b)) return;      /* 這本帳整個月沒資料就不列 */
+        shown++;
         rows.push([], ["【" + m.label + "】", TYPE[t.type]]);
         if(t.type === "perjob"){
           rows.push(["日期","星期","項目","件數","單價","小計"]);
           for(d=1; d<=n; d++){
             k = key(state.y,state.m,d); rec = b.days[k] || {};
+            if(!full && !(num(rec.qty) > 0)) continue;
             rows.push([state.m + "月" + d + "日", DOW[new Date(state.y,state.m-1,d).getDay()],
                        rec.item || (num(rec.qty) > 0 ? (b.defItem || "") : ""), rec.qty || 0,
                        (rec.price === "" || rec.price === undefined) ? num(b.unit) : rec.price,
@@ -1886,6 +1919,7 @@
           for(d=1; d<=n; d++){
             k = key(state.y,state.m,d); rec = b.days[k] || {};
             var mins = dayMinutes(rec);
+            if(!full && !mins && !rec.leave) continue;
             rows.push([state.m + "月" + d + "日", DOW[new Date(state.y,state.m-1,d).getDay()],
                        rec.in || "", rec.out || "", rec.brk || 0, rec.leave ? "是" : "",
                        mins, (mins/60).toFixed(2)]);
@@ -1915,6 +1949,7 @@
         rows.push(["特別獎金", Math.round(t.bonus)], ["其他扣款", Math.round(t.deduct)],
                   [m.label + "小計", Math.round(t.total)]);
       });
+      if(!shown) rows.push([], ["（這個月沒有任何紀錄）"]);
       rows.push([], ["實發總額", Math.round(empTotal(e2))]);
     }
 
@@ -2074,7 +2109,25 @@
 
     var nav = document.createElement("div");
     nav.className = "daynav";
-    nav.innerHTML = '<div class="dtitle">' + state.m + " 月 " + entryDay + " 日<em>週" + DOW[w] + "</em></div>";
+    var dt = document.createElement("div");
+    dt.className = "dtitle";
+    var di = document.createElement("input");
+    di.type = "date";
+    di.className = "dpick";
+    di.value = key(state.y, state.m, entryDay);
+    di.setAttribute("aria-label", "選擇日期");
+    di.onchange = function(){
+      var v = String(di.value).split("-");
+      if(v.length !== 3) return;
+      state.y = parseInt(v[0], 10);
+      state.m = parseInt(v[1], 10);
+      entryDay = parseInt(v[2], 10);
+      drawEntry();
+    };
+    var wd = document.createElement("em");
+    wd.textContent = "週" + DOW[w];
+    dt.appendChild(di); dt.appendChild(wd);
+    nav.appendChild(dt);
     box.appendChild(nav);
 
     var sum = document.createElement("div");
@@ -2178,7 +2231,7 @@
   }
   function closeEntry(){
     document.getElementById("entryMask").classList.add("hide");
-    drawTable(); drawPayout(); drawBooks();
+    drawAll();
   }
 
   document.getElementById("btnEntry").onclick = function(){
@@ -2609,6 +2662,10 @@
   }
 
   function drawSettings(){
+    var fe = document.getElementById("fullExp");
+    fe.checked = !!state.prefs.fullExp;
+    fe.onchange = function(){ state.prefs.fullExp = fe.checked; save(); };
+
     var dn = document.getElementById("divNames");
     dn.innerHTML = "";
     DIVS.forEach(function(m){
@@ -2834,6 +2891,8 @@
         if(parsed.prefs.fs) state.prefs.fs = parsed.prefs.fs;
         if(typeof parsed.prefs.rows === "number") state.prefs.rows = parsed.prefs.rows;
         if(typeof parsed.prefs.foldWho === "boolean") state.prefs.foldWho = parsed.prefs.foldWho;
+        if(typeof parsed.prefs.fullExp === "boolean") state.prefs.fullExp = parsed.prefs.fullExp;
+        if(typeof parsed.prefs.onlyUsed === "boolean") state.prefs.onlyUsed = parsed.prefs.onlyUsed;
       }
       if(parsed.trash) state.trash = prune(parsed.trash);
     }else if(parsed && parsed.staff && parsed.staff.length){
