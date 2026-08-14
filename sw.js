@@ -5,7 +5,7 @@
  */
 /* Service Worker
    改版時把 VERSION 加一，使用者下次開啟就會拿到新版 */
-var VERSION = "huixi-v4";
+var VERSION = "huixi-v6";
 var ASSETS = [
   "./",
   "./index.html",

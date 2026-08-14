@@ -118,6 +118,7 @@
   .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
   .tab{background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 15px;font-size:14px;transition:.15s}
   .tab:hover{border-color:var(--stem)}
+  .tab.sub{border-style:dashed;font-size:13px}
   .tab[aria-selected="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-fg)}
 
   /* 業務別切換 */
@@ -454,6 +455,7 @@
         </header>
         <div class="who" id="whoBody">
           <div class="field"><label for="fName">姓名</label><input id="fName" placeholder="輸入姓名"></div>
+          <div class="field"><label for="fLead">身分</label><select id="fLead"></select></div>
           <div class="field" id="wrapGroup"><label for="fGroup">類別</label><select id="fGroup"></select></div>
           <div class="field" id="wrapTitle"><label for="fTitle">職稱</label><select id="fTitle"></select><div class="hintline" id="roleHint"></div></div>
           <div class="field hide" id="wrapRole"><label for="fRole">職位</label><input id="fRole" placeholder="例：pt"></div>
@@ -555,6 +557,21 @@
   <p class="copy">版權所有 <span>&copy; 2026 CTM</span> · 保留一切權利</p>
 
  </div><!-- /body -->
+</div>
+
+<div class="mask hide" id="fileMask">
+  <div class="modal">
+    <header><span id="fileTitle">檔 案 內 容</span><button class="btn ghost" id="fClose">關閉</button></header>
+    <div class="mbody">
+      <div class="status" id="fHint"></div>
+      <div class="mrow">
+        <button class="btn" id="fCopy">全選並複製</button>
+        <button class="btn" id="fOpen">在新分頁開啟</button>
+      </div>
+      <textarea id="fText" readonly spellcheck="false"></textarea>
+      <div class="status">複製後可貼到備忘錄、Email 或 LINE 給自己；用「在新分頁開啟」則可透過分享鈕存成檔案。</div>
+    </div>
+  </div>
 </div>
 
 <div class="mask hide" id="menuMask">
@@ -661,6 +678,14 @@
       <div class="flow">花坊 ／ 景觀<br>　└ 員工（類別・職稱）<br>　　└ 一般業務 ／ 調度支援 ／ 內部施作<br>　　　└ 每日明細</div>
       <p>最上面先選部門，再選員工，接著選這筆工作屬於哪種業務，最後填每天的資料。三種業務的費率與紀錄完全分開，最後才加總。</p>
 
+      <h3>工班與協力人員</h3>
+      <ul>
+        <li>每位員工底下都能再掛<b>協力人員</b>：選好某位員工後，按分頁列的「＋ ○○ 的協力人員」。景觀的師傅自己找幫手就用這個。</li>
+        <li>協力人員是完整的一位員工，<b>薪資制、費率、每日紀錄全部獨立</b>，可以師傅日薪、臨時工時薪、外找的計次。</li>
+        <li>分頁以「└」標示從屬；全員總覽把工班排在一起，並多一列「○○ 工班合計」，看得到整組人的成本。</li>
+        <li>身分可在員工資料的「身分」欄隨時改。刪除主要人員時，底下的人會變成獨立員工，資料不會消失。</li>
+      </ul>
+
       <h3>選對薪資制</h3>
       <ul>
         <li><b>時薪制</b>：填上下班時間，薪資＝出勤總時數 × 時薪。下班時間比上班早會自動當成跨夜班。</li>
@@ -685,6 +710,7 @@
         <li>右側面板由上而下是明細、三本帳小計、實發總額。</li>
         <li><b>全員總覽</b>依類別分組，可看每組人事成本與全店合計。</li>
         <li><b>匯出 CSV</b>用 Excel 開不會亂碼；<b>列印</b>會自動轉成白底並展開整月。</li>
+        <li>iPhone 按匯出時會跳出<b>分享選單</b>，選「儲存到檔案」存進手機，或直接傳給自己。若裝置擋住下載，會改成顯示內容讓你複製。</li>
       </ul>
 
       <h3>備份與換機</h3>
@@ -887,13 +913,34 @@
   function blank(name){
     var books = {};
     BOOKS.forEach(function(m){ books[m.k] = blankBook(m.type, m.unit); });
-    return { id:uid(), name:name||"", grp:"", role:"", books:books };
+    return { id:uid(), name:name||"", grp:"", role:"", lead:"", books:books };
   }
   function current(){
     for(var i=0;i<state.staff.length;i++) if(state.staff[i].id === state.active) return state.staff[i];
     return state.staff[0];
   }
   function bk(emp, k){ return emp.books[k || state.book]; }
+
+  /* 協力人員：掛在某位主要人員底下，薪資各算各的 */
+  function isHelper(e, list){
+    list = list || state.staff;
+    return !!(e.lead && list.some(function(x){ return x.id === e.lead; }));
+  }
+  function helpersOf(id, list){
+    return (list || state.staff).filter(function(x){ return x.lead === id; });
+  }
+  function teamOrder(list){
+    var out = [];
+    list.forEach(function(e){
+      if(isHelper(e, list)) return;
+      out.push({ e:e, sub:false, team:helpersOf(e.id, list).length > 0 });
+      helpersOf(e.id, list).forEach(function(h){ out.push({ e:h, sub:true, lead:e.id }); });
+    });
+    list.forEach(function(e){
+      if(!out.some(function(x){ return x.e.id === e.id; })) out.push({ e:e, sub:true });
+    });
+    return out;
+  }
   function isOverview(){ return state.active === "__all__"; }
 
   /* ── 計算 ───────────────────────────── */
@@ -1048,11 +1095,12 @@
         return ga === gb ? a.i - b.i : ga - gb;
       });
     }
-    listed.map(function(x){ return x.e; }).forEach(function(e){
+    teamOrder(listed.map(function(x){ return x.e; })).forEach(function(node){
+      var e = node.e;
       var b = document.createElement("button");
-      b.className = "tab"; b.type = "button"; b.setAttribute("role","tab");
+      b.className = "tab" + (node.sub ? " sub" : ""); b.type = "button"; b.setAttribute("role","tab");
       b.setAttribute("aria-selected", e.id === state.active ? "true" : "false");
-      b.textContent = (e.name || "未命名") + (e.role ? "・" + e.role : "");
+      b.textContent = (node.sub ? "└ " : "") + (e.name || "未命名") + (e.role ? "・" + e.role : "");
       b.onclick = function(){ state.active = e.id; save(); drawAll(); };
       box.appendChild(b);
     });
@@ -1063,17 +1111,32 @@
     ov.onclick = function(){ state.active = "__all__"; save(); drawAll(); };
     box.appendChild(ov);
 
-    var add = document.createElement("button");
-    add.className = "btn ghost"; add.type = "button"; add.textContent = "＋ 新增員工";
-    add.onclick = function(){
+    function newStaff(leadId){
       var e = blank("");
       var tree = roleTree();
       if(tree){ e.grp = tree[0].g; e.role = tree[0].items[0].t; }
+      e.lead = leadId || "";
       state.staff.push(e); state.active = e.id; state.book = "normal";
       save(); drawAll();
       document.getElementById("fName").focus();
-    };
+    }
+
+    var add = document.createElement("button");
+    add.className = "btn ghost"; add.type = "button"; add.textContent = "＋ 新增員工";
+    add.onclick = function(){ newStaff(""); };
     box.appendChild(add);
+
+    if(!isOverview() && current()){
+      var cur = current();
+      var host = isHelper(cur) ? cur.lead : cur.id;
+      var hostName = "";
+      state.staff.forEach(function(x){ if(x.id === host) hostName = x.name || "未命名"; });
+      var addSub = document.createElement("button");
+      addSub.className = "btn ghost"; addSub.type = "button";
+      addSub.textContent = "＋ " + hostName + " 的協力人員";
+      addSub.onclick = function(){ newStaff(host); };
+      box.appendChild(addSub);
+    }
   }
 
   function drawBooks(){
@@ -1103,6 +1166,18 @@
     document.getElementById("fName").value = e.name;
     document.getElementById("fRole").value = e.role;
     drawRoleFields(e);
+
+    var sel = document.getElementById("fLead");
+    var opts = ['<option value="">獨立員工</option>'];
+    if(!helpersOf(e.id).length){
+      state.staff.forEach(function(x){
+        if(x.id === e.id || x.lead) return;    /* 只允許一層 */
+        opts.push('<option value="' + x.id + '"' + (e.lead === x.id ? " selected" : "")
+                + ">協力於 " + (x.name || "未命名") + "</option>");
+      });
+    }
+    sel.innerHTML = opts.join("");
+    sel.value = e.lead || "";
     document.getElementById("bookLabel").textContent = m.label.split("").join(" ") + " 的 薪 資 設 定";
     document.getElementById("fType").value = t;
     document.getElementById("fRate").value = b.rate;
@@ -1478,7 +1553,7 @@
       groups = [{ g:"", list:state.staff.slice() }];
     }
 
-    function addRow(e){
+    function addRow(e, sub){
       var line = 0;
       var cells = BOOKS.map(function(m){
         var b = e.books[m.k], t = totals(b);
@@ -1491,12 +1566,35 @@
       grand += line;
 
       var tr = document.createElement("tr");
-      tr.innerHTML = '<td class="name"><button class="btn ghost" style="padding:0">' + (e.name || "未命名")
+      tr.innerHTML = '<td class="name">' + (sub ? '<span class="zero">└ </span>' : "")
+                   + '<button class="btn ghost" style="padding:0">' + (e.name || "未命名")
                    + "</button>" + (e.role ? '<br><span class="zero" style="font-size:11px">' + e.role + "</span>" : "") + "</td>"
                    + cells + '<td class="num"><strong>' + money(line) + "</strong></td>";
       tr.querySelector("button").onclick = function(){ state.active = e.id; save(); drawAll(); };
       body.appendChild(tr);
       return line;
+    }
+
+    function addTeam(list){
+      var total = 0, nodes = teamOrder(list);
+      nodes.forEach(function(node, i){
+        total += addRow(node.e, node.sub);
+        var teamId = node.sub ? node.lead : node.e.id;
+        var last = !nodes[i+1] || !nodes[i+1].sub;
+        if(!last || !teamId) return;
+        var lead = null;
+        nodes.forEach(function(x){ if(x.e.id === teamId) lead = x.e; });
+        if(!lead || !helpersOf(lead.id, list).length) return;
+        var teamSum = empTotal(lead);
+        helpersOf(lead.id, list).forEach(function(h){ teamSum += empTotal(h); });
+        var tr2 = document.createElement("tr");
+        tr2.className = "grp";
+        tr2.innerHTML = '<td>　' + (lead.name || "未命名") + " 工班合計</td>"
+                      + BOOKS.map(function(){ return "<td></td>"; }).join("")
+                      + '<td class="num">' + money(teamSum) + "</td>";
+        body.appendChild(tr2);
+      });
+      return total;
     }
 
     groups.forEach(function(gr){
@@ -1508,10 +1606,10 @@
                     + BOOKS.map(function(){ return "<td></td>"; }).join("")
                     + '<td class="num" data-sub></td>';
         body.appendChild(h);
-        gr.list.forEach(function(e){ sub += addRow(e); });
+        sub += addTeam(gr.list);
         h.querySelector("[data-sub]").textContent = money(sub);
       }else{
-        gr.list.forEach(function(e){ addRow(e); });
+        addTeam(gr.list);
       }
     });
 
@@ -1577,6 +1675,11 @@
     document.getElementById("tscroll").scrollTop = 0;
   };
 
+  document.getElementById("fLead").onchange = function(){
+    current().lead = this.value;
+    save(); drawAll();
+  };
+
   document.getElementById("whoToggle").onclick = function(){
     state.prefs.foldWho = !state.prefs.foldWho;
     save(); drawWho();
@@ -1608,6 +1711,10 @@
     if(state.staff.length <= 1){ alert("至少要保留一位員工。"); return; }
     var e = current();
     if(!confirm("刪除「" + (e.name || "未命名") + "」？\n資料會放進回收區，30 天內可從「設定」還原。")) return;
+    var subs = helpersOf(e.id);
+    if(subs.length && !confirm("「" + (e.name || "未命名") + "」底下有 " + subs.length
+        + " 位協力人員。刪除後他們會變成獨立員工，資料保留。要繼續嗎？")) return;
+    subs.forEach(function(x){ x.lead = ""; });
     state.trash.push({ at:Date.now(), div:state.div, emp:JSON.parse(JSON.stringify(e)) });
     state.trash = prune(state.trash);
     state.staff = state.staff.filter(function(x){ return x.id !== e.id; });
@@ -1699,7 +1806,7 @@
     if(isOverview()){
       name = "全員總覽";
       rows.push(["茴禧花坊薪資總覽（" + divMeta(state.div).label + "）", state.y + "年" + state.m + "月"], []);
-      var head = ["姓名","類別","職稱"];
+      var head = ["姓名","身分","類別","職稱"];
       BOOKS.forEach(function(m){
         head.push(m.short + "薪資制", m.short + "時數", m.short + "件數", m.short + "小計");
       });
@@ -1709,7 +1816,9 @@
       var sums = {}, grand = 0;
       BOOKS.forEach(function(m){ sums[m.k] = 0; });
       state.staff.forEach(function(e){
-        var line = [e.name, e.grp || "", e.role], sub = 0;
+        var leadName = "";
+        state.staff.forEach(function(x){ if(x.id === e.lead) leadName = x.name || "未命名"; });
+        var line = [e.name, leadName ? "協力於 " + leadName : "獨立", e.grp || "", e.role], sub = 0;
         BOOKS.forEach(function(m){
           var t = totals(e.books[m.k]);
           sums[m.k] += t.total; sub += t.total;
@@ -1719,7 +1828,7 @@
         grand += sub;
         rows.push(line);
       });
-      var last = ["全店合計","",""];
+      var last = ["全店合計","","",""];
       BOOKS.forEach(function(m){ last.push("","","",Math.round(sums[m.k])); });
       last.push(Math.round(grand));
       rows.push([], last);
@@ -1727,7 +1836,10 @@
       var e2 = current(), n = daysIn(state.y, state.m);
       name = e2.name || "未命名";
       rows.push(["茴禧花坊薪資表（" + divMeta(state.div).label + "）", state.y + "年" + state.m + "月"]);
-      rows.push(["姓名", e2.name, "類別", e2.grp || "", "職稱", e2.role]);
+      var lead2 = "";
+      state.staff.forEach(function(x){ if(x.id === e2.lead) lead2 = x.name || "未命名"; });
+      rows.push(["姓名", e2.name, "身分", lead2 ? "協力於 " + lead2 : "獨立員工",
+                 "類別", e2.grp || "", "職稱", e2.role]);
 
       BOOKS.forEach(function(m){
         var b = e2.books[m.k], t = totals(b);
@@ -1786,11 +1898,81 @@
       }).join(",");
     }).join("\r\n");
 
+    saveFile("茴禧花坊薪資_" + state.y + pad(state.m) + "_" + divMeta(state.div).label + "_" + name + ".csv",
+             csv, "text/csv");
+  };
+
+  /* ── 存檔（iPhone 的下載限制較多，逐層退回） ── */
+  var fileBlobUrl = null;
+
+  function showFileFallback(name, text, mime){
+    document.getElementById("fileTitle").textContent = name;
+    document.getElementById("fHint").textContent =
+      "這台裝置擋住了直接下載，內容都在下面，請用「全選並複製」或「在新分頁開啟」保存。";
+    document.getElementById("fText").value = text;
+    if(fileBlobUrl) URL.revokeObjectURL(fileBlobUrl);
+    fileBlobUrl = URL.createObjectURL(new Blob([text], { type:(mime || "text/plain") + ";charset=utf-8" }));
+    document.getElementById("fileMask").classList.remove("hide");
+  }
+
+  function saveFile(name, text, mime){
+    var blob = new Blob([text], { type:(mime || "text/plain") + ";charset=utf-8" });
+    var standalone = (window.navigator.standalone === true) ||
+                     (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+
+    /* 1. 系統分享（iPhone 最可靠，可直接存到「檔案」或傳給自己） */
+    var file = null;
+    try{ file = new File([blob], name, { type:blob.type }); }catch(e){}
+    if(file && navigator.share && navigator.canShare && navigator.canShare({ files:[file] })){
+      navigator.share({ files:[file], title:name }).catch(function(err){
+        if(err && (err.name === "AbortError" || err.name === "NotAllowedError")) return;
+        showFileFallback(name, text, mime);
+      });
+      return;
+    }
+
+    /* 2. 一般下載 */
     var a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
-    a.download = "茴禧花坊薪資_" + state.y + pad(state.m) + "_" + divMeta(state.div).label + "_" + name + ".csv";
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    if(("download" in a) && !standalone){
+      var url = URL.createObjectURL(blob);
+      a.href = url; a.download = name; a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 60000);
+      return;
+    }
+
+    /* 3. 顯示內容讓使用者自行保存 */
+    showFileFallback(name, text, mime);
+  }
+
+  document.getElementById("fClose").onclick = function(){
+    document.getElementById("fileMask").classList.add("hide");
+  };
+  document.getElementById("fileMask").onclick = function(ev){
+    if(ev.target === this) this.classList.add("hide");
+  };
+  document.getElementById("fCopy").onclick = function(){
+    var ta = document.getElementById("fText"), btn = this;
+    ta.removeAttribute("readonly");
+    ta.focus(); ta.setSelectionRange(0, ta.value.length);
+    var ok = false;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(function(){
+        btn.textContent = "已複製";
+        setTimeout(function(){ btn.textContent = "全選並複製"; }, 1800);
+      }).catch(function(){});
+      ok = true;
+    }
+    if(!ok){
+      try{ ok = document.execCommand("copy"); }catch(e){}
+      btn.textContent = ok ? "已複製" : "請長按選取複製";
+      setTimeout(function(){ btn.textContent = "全選並複製"; }, 2200);
+    }
+    ta.setAttribute("readonly", "readonly");
+  };
+  document.getElementById("fOpen").onclick = function(){
+    if(fileBlobUrl) window.open(fileBlobUrl, "_blank");
   };
 
   /* ── 功能選單 ───────────────────────── */
@@ -2448,12 +2630,8 @@
     };
     var now = new Date();
     var name = "茴禧花坊備份_" + now.getFullYear() + pad(now.getMonth()+1) + pad(now.getDate()) + ".json";
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([JSON.stringify(doc)], { type:"application/json" }));
-    a.download = name;
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
-    bkSay("已匯出 " + name + "，請存到雲端硬碟或傳給自己保管。");
+    saveFile(name, JSON.stringify(doc), "application/json");
+    bkSay("已匯出 " + name + "。iPhone 會跳出分享選單，選「儲存到檔案」或傳給自己保管。");
   };
 
   document.getElementById("bkFile").onchange = function(){
@@ -2562,6 +2740,7 @@
       out.id = e.id || out.id;
       out.role = e.role || "";
       out.grp = e.grp || "";
+      out.lead = e.lead || "";
       if(e.books){
         BOOKS.forEach(function(m){
           /* 舊的「景觀設計」(land) 併入內部施作 */
