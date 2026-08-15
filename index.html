@@ -1468,8 +1468,9 @@
         pi.type = "number"; pi.min = "0"; pi.step = "10"; pi.inputMode = "numeric";
         var pv = rec().price;
         pi.value = (pv === undefined || pv === null) ? "" : pv;
-        pi.placeholder = num(b.unit);
+        pi.placeholder = num(rec().qty) > 0 ? num(b.unit) : "";
         pi.setAttribute("aria-label", state.m + "月" + d + "日單價");
+        cell.price = pi;
         pi.onchange = function(){ touch().price = pi.value === "" ? "" : num(pi.value); changed(); };
         tdP.appendChild(pi); tr.appendChild(tdP);
 
@@ -1532,6 +1533,7 @@
         tr.className = cls.join(" ");
 
         if(t === "perjob"){
+          if(cell.price) cell.price.placeholder = num(r.qty) > 0 ? num(b.unit) : "";
           cell.out.innerHTML = v ? money(v) : '<span class="zero">—</span>';
         }else{
           var off = !!(r.leave && t === "monthly");
@@ -2195,7 +2197,7 @@
   };
 
   /* ── 版本與更新 ─────────────────────── */
-  var APPVER = "v19";
+  var APPVER = "v20";
 
   function forceUpdate(btn){
     if(btn) btn.textContent = "更新中…";
@@ -2345,12 +2347,13 @@
         var rr = entryRec();
         rr.qty = num(qi.value);
         if(rr.qty > 0 && !rr.item && b.defItem){ rr.item = b.defItem; it.value = b.defItem; }
+        pi.placeholder = rr.qty > 0 ? num(b.unit) : "";
         changed();
       };
       var pi = document.createElement("input");
       pi.type = "number"; pi.min = "0"; pi.step = "10"; pi.inputMode = "numeric";
       pi.value = (r.price === undefined || r.price === null) ? "" : r.price;
-      pi.placeholder = num(b.unit);
+      pi.placeholder = num(r.qty) > 0 ? num(b.unit) : "";
       pi.onchange = function(){ entryRec().price = pi.value === "" ? "" : num(pi.value); changed(); };
       grid.appendChild(field("件數", qi));
       grid.appendChild(field("單價（留空用預設）", pi));
